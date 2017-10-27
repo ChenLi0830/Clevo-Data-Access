@@ -91,13 +91,12 @@ app.use(passport.session())
 // Serve statically built client
 // app.use(express.static('../ClevoClient/build'))
 
-
 // Enable CORS for /graphql for dev purpose, TODO remove this for production
 const corsOptions = {
   origin: 'http://localhost:3000',
   credentials: true // <-- REQUIRED backend setting
-};
-app.use(cors(corsOptions));
+}
+app.use(cors(corsOptions))
 
 // Instruct Express to pass on any request made to the '/graphql' route
 // to the GraphQL instance.
@@ -105,6 +104,5 @@ app.use('/graphql', graphqlHTTP({
   schema,
   graphiql: true
 }))
-
 
 module.exports = app

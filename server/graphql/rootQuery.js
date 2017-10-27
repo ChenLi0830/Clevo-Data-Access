@@ -21,7 +21,7 @@ const RootQueryType = new GraphQLObjectType({
       resolve: (parentsValue, args, req) => {
         if (!req.user) return null
         return UserResolver.getUserWithTeamAndStaffList(req.user)
-          .then((user)=> new UserACL(user, req)) // Apply ACL layer
+          .then((user) => new UserACL(user, req)) // Apply ACL layer
       }
     },
     team: {
@@ -31,7 +31,7 @@ const RootQueryType = new GraphQLObjectType({
       },
       resolve: (parentsValue, args, req) => {
         return TeamResolver.getTeamByName(args.name)
-          .then((team)=> new TeamACL(team, req)) // Apply ACL layer
+          .then((team) => new TeamACL(team, req)) // Apply ACL layer
       }
     }
   }

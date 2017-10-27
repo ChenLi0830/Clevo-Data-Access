@@ -11,7 +11,7 @@ const getUserWithTeamAndStaffList = (user) => {
     .populate({
       path: 'team',
       // Get friends of friends - populate the 'friends' array for every friend
-      populate: { path: 'staffList' }
+      populate: {path: 'staffList'}
     })
     .then(user => {
       return user

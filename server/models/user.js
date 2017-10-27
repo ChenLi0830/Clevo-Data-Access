@@ -14,15 +14,13 @@ const UserSchema = new Schema({
   name: String,
   staffId: String,
   status: String, // flag for status, such as active, inactive, etc
-  team: {
+  team: {
     type: Schema.Types.ObjectId,
     ref: 'team'
   },
   role: String, // orgAdmin / teamAdmin / staff
   // organization: OrganizationType,
 })
-
-
 
 // The user's password is never saved in plain text.  Prior to saving the
 // user model, we 'salt' and 'hash' the users password.  This is a one way
