@@ -15,15 +15,21 @@ const mutation = new GraphQLObjectType({
       args: {
         email: {type: GraphQLString},
         password: {type: GraphQLString},
+        title: {type: GraphQLString},
+        name: {type: GraphQLString},
+        staffId: {type: GraphQLString},
+        role: {type: GraphQLString},
+        teamName: {type: GraphQLString},
       },
-      resolve: (parentValue, {email, password}, req) => {
-        return AuthService.signup({email, password, req})
+      resolve: (parentValue, args, req) => {
+        return AuthService.signup({props: args, req})
       }
     },
     logout: {
       type: UserType,
       resolve: (parentValue, args, req) => {
         const {user} = req
+        // console.log("Object.keys(req)", Object.keys(req))
         req.logout()
         return user
       }

@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 
-const User = mongoose.model('user')
+const {User, Team} = require('../models')
 
 // SerializeUser is used to provide some identifying token that can be saved
 // in the users session.  We traditionally use the 'ID' for this.
@@ -47,13 +47,28 @@ passport.use(new LocalStrategy({usernameField: 'email'}, (email, password, done)
 // Notice the Promise created in the second 'then' statement.  This is done
 // because Passport only supports callbacks, while GraphQL only supports promises
 // for async code!  Awkward!
-function signup ({email, password, req}) {
-  const user = new User({email, password})
-  if (!email || !password) { throw new Error('You must provide an email and password.') }
+function signup ({props, req}) {
+  const {teamName, ...userProps} = props
+  const user = new User(userProps)
   
-  return User.findOne({email})
+  if (!props.email || !props.password) { throw new Error('You must provide an email and password.') }
+  
+  return User.findOne({email: props.email})
     .then(existingUser => {
       if (existingUser) { throw new Error('Email in use') }
+      return Team.findOne({name: teamName})
+    })
+    .then(team => {
+      if (!team) { throw new Error('Team doesn\'t exist') }
+      user.team = team
+      team.staffList.push(user)
+      return Promise.all([user.save(), team.save()])
+    })
+    .then(results => results[0])
+    .then(user => {
+      user.status = 'active'
+      user.createdAt = new Date()
+      user.updatedAt = new Date()
       return user.save()
     })
     .then(user => {

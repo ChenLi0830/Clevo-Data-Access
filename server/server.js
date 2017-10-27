@@ -1,6 +1,6 @@
 const express = require('express')
 const models = require('./models')
-const expressGraphQL = require('express-graphql')
+const graphqlHTTP = require('express-graphql')
 const mongoose = require('mongoose')
 const session = require('express-session')
 const passport = require('passport')
@@ -14,7 +14,8 @@ const app = express()
 
 // Replace with your mongoLab URI
 // const MONGO_URI = 'mongodb://user:password@ds157549.mlab.com:57549/auth-graphq';
-const MONGO_URI = 'mongodb://clevoUser:password@ds113505.mlab.com:13505/auth'
+// const MONGO_URI = 'mongodb://clevoUser:password@ds113505.mlab.com:13505/auth'
+const MONGO_URI = 'mongodb://localhost/graphql-rule-test'
 
 // const MONGO_URI = 'mongodb://user:password@ds157549.mlab.com:57549/auth-graphq';library is
 // deprecated, replace it with ES2015 Promise
@@ -49,7 +50,8 @@ app.use(session({
 app.use(passport.initialize())
 app.use(passport.session())
 
-app.use(express.static('../ClevoClient/build'))
+// Serve statically built client
+// app.use(express.static('../ClevoClient/build'))
 
 // Enable CORS for /graphql for dev purpose, TODO remove this for production
 const corsOptions = {
@@ -60,17 +62,10 @@ app.use(cors(corsOptions));
 
 // Instruct Express to pass on any request made to the '/graphql' route
 // to the GraphQL instance.
-app.use('/graphql', expressGraphQL({
+app.use('/graphql', graphqlHTTP({
   schema,
   graphiql: true
 }))
 
-// // Webpack runs as a middleware.  If any request comes in for the root route ('/')
-// // Webpack will respond with the output of the webpack process: an HTML file and
-// // a single bundle.js output of all of our client side Javascript
-// const webpackMiddleware = require('webpack-dev-middleware');
-// const webpack = require('webpack');
-// const webpackConfig = require('../webpack.config.js');
-// app.use(webpackMiddleware(webpack(webpackConfig)));
 
 module.exports = app
