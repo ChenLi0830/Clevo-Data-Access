@@ -1,6 +1,7 @@
 const graphql = require('graphql')
 const {
   GraphQLObjectType,
+  GraphQLString,
   GraphQLID
 } = graphql
 const UserType = require('./types/user_type')
@@ -25,8 +26,11 @@ const RootQueryType = new GraphQLObjectType({
     },
     team: {
       type: TeamType,
+      args: {
+        name: {type: GraphQLString},
+      },
       resolve: (parentsValue, args, req) => {
-        return TeamResolver.getTeamByName('team1')
+        return TeamResolver.getTeamByName(args.name)
           .then((team)=> new TeamACL(team, req)) // Apply ACL layer
       }
     }
