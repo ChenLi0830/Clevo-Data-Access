@@ -7,7 +7,7 @@ const UserRule = Rule.create({
     isAdmin: (model) => model.$context.user.role === 'ClevoAdmin',
     isOwner: (model) => model.$data.id === model.$context.user.id,
   },
-  defaultRule:{
+  defaultRule: {
     preRead: true,
     read: true,
     readFail: null,

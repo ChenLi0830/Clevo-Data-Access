@@ -6,7 +6,9 @@ function userSignUp ({props, req}) {
   const {teamName, ...userProps} = props
   const user = new User(userProps)
   
-  if (!props.email || !props.password) { throw new Error('You must provide an email and password.') }
+  if (!props.email || !props.password) {
+    throw new Error('You must provide an email and password.')
+  }
   
   return User.findOne({email: props.email})
     .then(existingUser => {
@@ -46,7 +48,7 @@ function userLogin ({email, password, req}) {
   })
 }
 
-function userLogout(req){
+function userLogout (req) {
   const {user} = req
   req.logout()
   return user
