@@ -1,4 +1,4 @@
-const {Team} = require('../models')
+const {Team} = require('../../models/index')
 
 const getTeam = (id) => {
   return Team

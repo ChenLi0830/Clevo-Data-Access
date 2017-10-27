@@ -9,8 +9,8 @@ const TeamType = require('./types/team_type')
 const {User} = require('../models/index')
 const UserResolver = require('../resolvers/queries/user')
 const TeamResolver = require('../resolvers/queries/team')
-const UserACL = require('../ACL/user')
-const TeamACL = require('../ACL/team')
+const UserACL = require('./ACL/user')
+const TeamACL = require('./ACL/team')
 
 const RootQueryType = new GraphQLObjectType({
   name: 'RootQueryType',
@@ -18,7 +18,8 @@ const RootQueryType = new GraphQLObjectType({
     user: {
       type: UserType,
       resolve: (parentsValue, args, req) => {
-        return UserResolver.getUserWithTeamAndStaffList(req.user._id)
+        if (!req.user) return null
+        return UserResolver.getUserWithTeamAndStaffList(req.user)
           .then((user)=> new UserACL(user, req)) // Apply ACL layer
       }
     },

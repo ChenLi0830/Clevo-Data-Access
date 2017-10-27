@@ -5,7 +5,10 @@ const TeamRule = Rule.create({
   name: 'Team',
   props: {
     isAdmin: (model) => model.$context.user.role === 'ClevoAdmin',
-    isMember: (model) => model.$data.id === model.$context.user.team.toString(),
+    isMember: (model) => {
+      if (!model.$context.user) return false
+      return model.$data.id === model.$context.user.team.toString()
+    }
   },
   rules: {
     id: true,

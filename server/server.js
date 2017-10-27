@@ -4,18 +4,18 @@ const graphqlHTTP = require('express-graphql')
 const mongoose = require('mongoose')
 const session = require('express-session')
 const passport = require('passport')
-const passportConfig = require('./services/auth')
 const MongoStore = require('connect-mongo')(session)
-const schema = require('./schema/schema')
+const schema = require('./graphql/schema')
 const cors = require('cors')
-
+const {User} = require('./models')
 // Create a new Express application
+const LocalStrategy = require('passport-local').Strategy
 const app = express()
 
 // Replace with your mongoLab URI
 // const MONGO_URI = 'mongodb://user:password@ds157549.mlab.com:57549/auth-graphq';
-// const MONGO_URI = 'mongodb://clevoUser:password@ds113505.mlab.com:13505/auth'
-const MONGO_URI = 'mongodb://localhost/graphql-rule-test'
+const MONGO_URI = 'mongodb://clevoUser:password@ds113505.mlab.com:13505/auth'
+// const MONGO_URI = 'mongodb://localhost/graphql-rule-test'
 
 // const MONGO_URI = 'mongodb://user:password@ds157549.mlab.com:57549/auth-graphq';library is
 // deprecated, replace it with ES2015 Promise
@@ -43,6 +43,44 @@ app.use(session({
   })
 }))
 
+/**
+ * passport config
+ * */
+// SerializeUser is used to provide some identifying token that can be saved
+// in the users session.  We traditionally use the 'ID' for this.
+passport.serializeUser((user, done) => {
+  done(null, user.id)
+})
+
+// The counterpart of 'serializeUser'.  Given only a user's ID, we must return
+// the user object.  This object is placed on 'req.user'.
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {
+    done(err, user)
+  })
+})
+
+// Instructs Passport how to authenticate a user using a locally saved email
+// and password combination.  This strategy is called whenever a user attempts to
+// log in.  We first find the user model in MongoDB that matches the submitted email,
+// then check to see if the provided password matches the saved password. There
+// are two obvious failure points here: the email might not exist in our DB or
+// the password might not match the saved one.  In either case, we call the 'done'
+// callback, including a string that messages why the authentication process failed.
+// This string is provided back to the GraphQL client.
+passport.use(new LocalStrategy({usernameField: 'email'}, (email, password, done) => {
+  User.findOne({email: email.toLowerCase()}, (err, user) => {
+    if (err) { return done(err) }
+    if (!user) { return done(null, false, 'Invalid Credentials') }
+    user.comparePassword(password, (err, isMatch) => {
+      if (err) { return done(err) }
+      if (isMatch) {
+        return done(null, user)
+      }
+      return done(null, false, 'Invalid credentials.')
+    })
+  })
+}))
 
 // Passport is wired into express as a middleware. When a request comes in,
 // Passport will examine the request's session (as set by the above config) and
@@ -52,6 +90,7 @@ app.use(passport.session())
 
 // Serve statically built client
 // app.use(express.static('../ClevoClient/build'))
+
 
 // Enable CORS for /graphql for dev purpose, TODO remove this for production
 const corsOptions = {
