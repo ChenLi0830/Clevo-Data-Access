@@ -3,14 +3,14 @@ const {
   GraphQLObjectType,
   GraphQLID
 } = graphql
-const UserType = require('./user_type')
-const TeamType = require('./team_type')
+const UserType = require('./types/user_type')
+const TeamType = require('./types/team_type')
 
-const {User} = require('../../models')
-const UserResolver = require('../../resolvers/user')
-const TeamResolver = require('../../resolvers/team')
-const UserACL = require('../../ACL/user')
-const TeamACL = require('../../ACL/team')
+const {User} = require('../models/index')
+const UserResolver = require('../resolvers/queries/user')
+const TeamResolver = require('../resolvers/queries/team')
+const UserACL = require('../ACL/user')
+const TeamACL = require('../ACL/team')
 
 const RootQueryType = new GraphQLObjectType({
   name: 'RootQueryType',
