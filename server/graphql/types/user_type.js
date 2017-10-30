@@ -11,13 +11,13 @@ const UserType = new GraphQLObjectType({
   name: 'UserType',
   fields: () => {
     return {
-      id: {type: GraphQLID},
-      email: {type: GraphQLString},
-      title: {type: GraphQLString},
-      name: {type: GraphQLString},
-      staffId: {type: GraphQLString},
-      role: {type: GraphQLString},
-      team: {type: TeamType}
+      id: { type: GraphQLID },
+      email: { type: GraphQLString },
+      title: { type: GraphQLString },
+      name: { type: GraphQLString },
+      staffId: { type: GraphQLString },
+      role: { type: GraphQLString },
+      team: { type: TeamType }
     }
   }
 })

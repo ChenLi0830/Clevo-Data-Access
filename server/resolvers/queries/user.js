@@ -1,4 +1,4 @@
-const {User} = require('../../models/index')
+const { User } = require('../../models/index')
 
 /**
  * An example getUser method that populates through multiple layers
@@ -11,11 +11,11 @@ const getUserWithTeamAndStaffList = (user) => {
     .populate({
       path: 'team',
       // Get friends of friends - populate the 'friends' array for every friend
-      populate: {path: 'staffList'}
+      populate: { path: 'staffList' }
     })
     .then(user => {
       return user
     })
 }
 
-module.exports = {getUserWithTeamAndStaffList}
+module.exports = { getUserWithTeamAndStaffList }
