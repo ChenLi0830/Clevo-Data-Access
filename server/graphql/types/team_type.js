@@ -3,7 +3,7 @@ const {
   GraphQLObjectType,
   GraphQLString,
   GraphQLID,
-  GraphQLList,
+  GraphQLList
 } = graphql
 
 const TeamType = new GraphQLObjectType({
@@ -15,8 +15,8 @@ const TeamType = new GraphQLObjectType({
       status: {type: GraphQLString},
       staffList: {
         // import the UserType in the lazy load function to solve circular dependency problem
-        type: new GraphQLList(require('./user_type')),
-      },
+        type: new GraphQLList(require('./user_type'))
+      }
     }
   }
 })

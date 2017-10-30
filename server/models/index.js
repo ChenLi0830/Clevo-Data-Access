@@ -3,5 +3,5 @@ const Team = require('./team')
 
 module.exports = {
   User,
-  Team,
+  Team
 }

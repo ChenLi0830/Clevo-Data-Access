@@ -1,13 +1,11 @@
 const graphql = require('graphql')
 const {
   GraphQLObjectType,
-  GraphQLString,
-  GraphQLID
+  GraphQLString
 } = graphql
 const UserType = require('./types/user_type')
 const TeamType = require('./types/team_type')
 
-const {User} = require('../models/index')
 const UserResolver = require('../resolvers/queries/user')
 const TeamResolver = require('../resolvers/queries/team')
 const UserACL = require('./ACL/user')
@@ -27,7 +25,7 @@ const RootQueryType = new GraphQLObjectType({
     team: {
       type: TeamType,
       args: {
-        name: {type: GraphQLString},
+        name: {type: GraphQLString}
       },
       resolve: (parentsValue, args, req) => {
         return TeamResolver.getTeamByName(args.name)

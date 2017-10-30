@@ -1,5 +1,4 @@
 const bcrypt = require('bcrypt-nodejs')
-const crypto = require('crypto')
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
@@ -18,7 +17,7 @@ const UserSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'team'
   },
-  role: String, // orgAdmin / teamAdmin / staff
+  role: String // orgAdmin / teamAdmin / staff
   // organization: OrganizationType,
 })
 

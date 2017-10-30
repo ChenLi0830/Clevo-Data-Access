@@ -5,7 +5,7 @@ const {User} = require('../../models/index')
  * */
 const getUserWithTeamAndStaffList = (user) => {
   if (!user) return Promise.resolve(null)
-  
+
   return User
     .findById(user.id)
     .populate({
