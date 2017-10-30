@@ -5,18 +5,18 @@ const UserRule = Rule.create({
   name: 'User',
   props: {
     isAdmin: (model) => model.$context.user.role === 'ClevoAdmin',
-    isOwner: (model) => model.$data.id === model.$context.user.id,
+    isOwner: (model) => model.$data.id === model.$context.user.id
   },
   defaultRule: {
     preRead: true,
     read: true,
-    readFail: null,
+    readFail: null
   },
   rules: {
     id: true,
     email: {
       preRead: (model) => model.$props.isAdmin || model.$props.isOwner,
-      readFail: () => { throw new Error('Unauthorized') },
+      readFail: () => { throw new Error('Unauthorized') }
     },
     password: false,
     title: {},
@@ -26,8 +26,8 @@ const UserRule = Rule.create({
     createdAt: (model) => model.$props.isAdmin || model.$props.isOwner,
     updatedAt: (model) => model.$props.isAdmin || model.$props.isOwner,
     status: {},
-    team: {},
-  },
+    team: {}
+  }
 })
 
 module.exports = UserRule
