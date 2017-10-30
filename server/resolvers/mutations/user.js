@@ -5,11 +5,11 @@ const {User, Team} = require('../../models')
 function userSignUp ({props, req}) {
   const {teamName, ...userProps} = props
   const user = new User(userProps)
-  
+
   if (!props.email || !props.password) {
     throw new Error('You must provide an email and password.')
   }
-  
+
   return User.findOne({email: props.email})
     .then(existingUser => {
       if (existingUser) { throw new Error('Email in use') }
@@ -41,8 +41,11 @@ function userSignUp ({props, req}) {
 function userLogin ({email, password, req}) {
   return new Promise((resolve, reject) => {
     passport.authenticate('local', (err, user) => {
-      if (!user) { reject('Invalid credentials.') }
-      
+      if (err) {
+        throw new Error(err)
+      }
+      if (!user) { reject(new Error('Invalid credentials.')) }
+
       req.login(user, () => resolve(user))
     })({body: {email, password}})
   })

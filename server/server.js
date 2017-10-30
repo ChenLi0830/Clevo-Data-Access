@@ -1,5 +1,4 @@
 const express = require('express')
-const models = require('./models')
 const graphqlHTTP = require('express-graphql')
 const mongoose = require('mongoose')
 const session = require('express-session')

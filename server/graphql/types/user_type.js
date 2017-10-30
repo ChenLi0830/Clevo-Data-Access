@@ -2,8 +2,7 @@ const graphql = require('graphql')
 const {
   GraphQLObjectType,
   GraphQLString,
-  GraphQLID,
-  GraphQLList,
+  GraphQLID
 } = graphql
 
 const TeamType = require('./team_type')
@@ -18,7 +17,7 @@ const UserType = new GraphQLObjectType({
       name: {type: GraphQLString},
       staffId: {type: GraphQLString},
       role: {type: GraphQLString},
-      team: {type: TeamType},
+      team: {type: TeamType}
     }
   }
 })
