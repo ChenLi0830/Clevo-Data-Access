@@ -16,8 +16,8 @@ const TeamRule = Rule.create({
     status: true,
     staffList: (model) => {
       return model.$props.isMember
-    },
-  },
+    }
+  }
 })
 
 module.exports = TeamRule

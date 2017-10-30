@@ -9,9 +9,9 @@ const TeamSchema = new Schema(
     status: String,
     staffList: [{
       type: Schema.Types.ObjectId,
-      ref: 'user',
-    }],
-  },
+      ref: 'user'
+    }]
+  }
 )
 
 module.exports = mongoose.model('team', TeamSchema)
