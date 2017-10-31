@@ -1,19 +1,18 @@
 const passport = require('passport')
 
-const {User, Team} = require('../../models')
+const { User, Team } = require('../../models')
 
-function userSignUp ({props, req}) {
-  const {teamName, ...userProps} = props
-  const user = new User(userProps)
+function userSignUp ({ props, req }) {
+  const user = new User(props)
 
   if (!props.email || !props.password) {
     throw new Error('You must provide an email and password.')
   }
 
-  return User.findOne({email: props.email})
+  return User.findOne({ email: props.email })
     .then(existingUser => {
       if (existingUser) { throw new Error('Email in use') }
-      return Team.findOne({name: teamName})
+      return Team.findOne({ name: props.teamName })
     })
     .then(team => {
       if (!team) { throw new Error('Team doesn\'t exist') }
@@ -38,23 +37,21 @@ function userSignUp ({props, req}) {
     })
 }
 
-function userLogin ({email, password, req}) {
+function userLogin ({ email, password, req }) {
   return new Promise((resolve, reject) => {
     passport.authenticate('local', (err, user) => {
-      if (err) {
-        throw new Error(err)
-      }
+      if (err) { reject(err) }
       if (!user) { reject(new Error('Invalid credentials.')) }
 
       req.login(user, () => resolve(user))
-    })({body: {email, password}})
+    })({ body: { email, password } })
   })
 }
 
 function userLogout (req) {
-  const {user} = req
+  const { user } = req
   req.logout()
   return user
 }
 
-module.exports = {userSignUp, userLogin, userLogout}
+module.exports = { userSignUp, userLogin, userLogout }

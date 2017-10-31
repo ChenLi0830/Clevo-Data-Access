@@ -25,7 +25,7 @@ const RootQueryType = new GraphQLObjectType({
     team: {
       type: TeamType,
       args: {
-        name: {type: GraphQLString}
+        name: { type: GraphQLString }
       },
       resolve: (parentsValue, args, req) => {
         return TeamResolver.getTeamByName(args.name)

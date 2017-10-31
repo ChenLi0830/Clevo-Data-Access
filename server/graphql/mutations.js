@@ -6,8 +6,8 @@ const {
 
 const UserType = require('./types/user_type')
 const TeamType = require('./types/team_type')
-const {userLogin, userSignUp, userLogout} = require('../resolvers/mutations/user')
-const {teamCreate} = require('../resolvers/mutations/team')
+const { userLogin, userSignUp, userLogout } = require('../resolvers/mutations/user')
+const { teamCreate } = require('../resolvers/mutations/team')
 
 const mutation = new GraphQLObjectType({
   name: 'Mutation',
@@ -15,7 +15,7 @@ const mutation = new GraphQLObjectType({
     teamCreate: {
       type: TeamType,
       args: {
-        name: {type: GraphQLString}
+        name: { type: GraphQLString }
       },
       resolve: (parentValue, args) => {
         return teamCreate(args)
@@ -24,16 +24,16 @@ const mutation = new GraphQLObjectType({
     userSignUp: {
       type: UserType,
       args: {
-        email: {type: GraphQLString},
-        password: {type: GraphQLString},
-        title: {type: GraphQLString},
-        name: {type: GraphQLString},
-        staffId: {type: GraphQLString},
-        role: {type: GraphQLString},
-        teamName: {type: GraphQLString}
+        email: { type: GraphQLString },
+        password: { type: GraphQLString },
+        title: { type: GraphQLString },
+        name: { type: GraphQLString },
+        staffId: { type: GraphQLString },
+        role: { type: GraphQLString },
+        teamName: { type: GraphQLString }
       },
       resolve: (parentValue, args, req) => {
-        return userSignUp({props: args, req})
+        return userSignUp({ props: args, req })
       }
     },
     userLogout: {
@@ -45,11 +45,11 @@ const mutation = new GraphQLObjectType({
     userLogin: {
       type: UserType,
       args: {
-        email: {type: GraphQLString},
-        password: {type: GraphQLString}
+        email: { type: GraphQLString },
+        password: { type: GraphQLString }
       },
-      resolve: (parentValue, {email, password}, req) => {
-        return userLogin({email, password, req})
+      resolve: (parentValue, { email, password }, req) => {
+        return userLogin({ email, password, req })
       }
     }
 
