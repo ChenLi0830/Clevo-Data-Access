@@ -5,7 +5,7 @@ const session = require('express-session')
 const passport = require('passport')
 const MongoStore = require('connect-mongo')(session)
 const schema = require('./graphql/schema')
-// const cors = require('cors')
+const cors = require('cors')
 const { User } = require('./models')
 // Create a new Express application
 const LocalStrategy = require('passport-local').Strategy
@@ -14,12 +14,14 @@ const app = express()
 // Serve statically built client
 // app.use(express.static('../ClevoClient/build'))
 
-// Enable CORS for /graphql for dev purpose, TODO remove this for production
-// const corsOptions = {
-//   origin: 'http://localhost:4000',
-//   credentials: true // <-- REQUIRED backend setting
-// }
-// app.use(cors(corsOptions))
+// Enable CORS for /graphql for dev purpose
+if (process.env.NODE_ENV === 'dev') {
+  const corsOptions = {
+    origin: 'http://localhost:3000',
+    credentials: true // <-- REQUIRED backend setting
+  }
+  app.use(cors(corsOptions))
+}
 
 // Instruct Express to pass on any request made to the '/graphql' route
 // to the GraphQL instance.
