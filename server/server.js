@@ -84,7 +84,7 @@ mongoose.connect(MONGO_URI, {
   // Enable CORS for /graphql for dev purpose
   if (process.env.NODE_ENV === 'dev') {
     const corsOptions = {
-      origin: 'http://localhost:' + process.env.PORT,
+      origin: `http://localhost:${process.env.CLIENT_PORT || 3000}`,
       credentials: true // <-- REQUIRED backend setting
     }
     app.use(cors(corsOptions))
