@@ -3,7 +3,6 @@ const passport = require('passport')
 const { User, Team } = require('../../models')
 
 function userSignUp ({ props, req }) {
-  const teamName = (props && props.length >= 1) ? props.splice(0, 1) : undefined
   const user = new User(props)
 
   if (!props.email || !props.password) {
@@ -13,7 +12,7 @@ function userSignUp ({ props, req }) {
   return User.findOne({ email: props.email })
     .then(existingUser => {
       if (existingUser) { throw new Error('Email in use') }
-      return Team.findOne({ name: teamName })
+      return Team.findOne({ name: props.teamName })
     })
     .then(team => {
       if (!team) { throw new Error('Team doesn\'t exist') }

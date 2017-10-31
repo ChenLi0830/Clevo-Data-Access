@@ -14,22 +14,6 @@ const app = express()
 // Serve statically built client
 // app.use(express.static('../ClevoClient/build'))
 
-// Enable CORS for /graphql for dev purpose
-if (process.env.NODE_ENV === 'dev') {
-  const corsOptions = {
-    origin: 'http://localhost:3000',
-    credentials: true // <-- REQUIRED backend setting
-  }
-  app.use(cors(corsOptions))
-}
-
-// Instruct Express to pass on any request made to the '/graphql' route
-// to the GraphQL instance.
-app.use('/graphql', graphqlHTTP({
-  schema,
-  graphiql: true
-}))
-
 // Mongo connection
 const MONGO_URI = process.env.MONGO_URI
 mongoose.Promise = global.Promise
@@ -48,8 +32,7 @@ mongoose.connect(MONGO_URI, {
     saveUninitialized: true,
     secret: 'aaabbbcccsecrect',
     store: new MongoStore({
-      url: MONGO_URI,
-      autoReconnect: true
+      mongooseConnection: mongoose.connection
     })
   }))
 
@@ -97,6 +80,22 @@ mongoose.connect(MONGO_URI, {
   // assign the current user to the 'req.user' object.  See also servces/auth.js
   app.use(passport.initialize())
   app.use(passport.session())
+
+  // Enable CORS for /graphql for dev purpose
+  if (process.env.NODE_ENV === 'dev') {
+    const corsOptions = {
+      origin: 'http://localhost:' + process.env.PORT,
+      credentials: true // <-- REQUIRED backend setting
+    }
+    app.use(cors(corsOptions))
+  }
+
+  // Instruct Express to pass on any request made to the '/graphql' route
+  // to the GraphQL instance.
+  app.use('/graphql', graphqlHTTP({
+    schema,
+    graphiql: true
+  }))
 }, error => {
   console.log('mongoose connecting failed', error)
 })
