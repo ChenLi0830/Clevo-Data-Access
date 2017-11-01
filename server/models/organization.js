@@ -10,11 +10,7 @@ const OrganizationSchema = new Schema(
         'active', 'inactive'
       ]
     },
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'user'
-    },
-    teamList: [{
+    teams: [{
       type: Schema.Types.ObjectId,
       ref: 'team'
     }],

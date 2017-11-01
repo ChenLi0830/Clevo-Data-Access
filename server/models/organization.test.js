@@ -4,89 +4,92 @@ require('dotenv').config()
 const mongoose = require('mongoose')
 const faker = require('faker')
 
+const Team = require('./team')
+const team = new Team({
+  name: faker.name.lastName(),
+  status: 'active'
+})
+const name = faker.company.companyName()
+const status = 'active'
+const analyticRules = {
+  sensitiveWords: faker.lorem.words().split(' '),
+  bannedWords: faker.lorem.words().split(' '),
+  emotionThreshold: faker.random.number(1),
+  ratingThreshold: faker.random.number(5)
+}
+const Organization = require('./organization')
+let organization = new Organization({
+  name,
+  status,
+  analyticRules,
+  teams: [
+    team
+  ]
+})
+
 beforeAll(() => {
   mongoose.Promise = global.Promise
   return mongoose.connect(process.env.MONGO_URI, {
     useMongoClient: true
   }).then(result => {
     console.log('mongoose connected successfully')
+    // seed team for test
+    return team.save()
   }, error => {
     console.log('mongoose connecting failed', error)
   })
 })
 
 afterAll(() => {
-  return mongoose.disconnect()
-  // let collection = mongoose.connection.collections['organizations']
-  // return collection.drop().then(result => {
-  //   console.log('test collection dropped successfully', result)
-  //   return result
-  // }, error => {
-  //   console.log('test collection dropping failed', error)
-  // })
-})
-
-const Organization = require('./organization')
-const orgName = faker.company.companyName()
-const orgStatus = 'active'
-const sensitiveWords = faker.lorem.words().split(' ')
-const bannedWords = faker.lorem.words().split(' ')
-const emotionThreshold = faker.random.number(1)
-const ratingThreshold = faker.random.number(5)
-let org = new Organization({
-  name: orgName,
-  status: orgStatus,
-  analyticRules: {
-    sensitiveWords,
-    bannedWords,
-    emotionThreshold,
-    ratingThreshold
-  }
+  // cleanup team for test
+  return team.remove().then(result => {
+    return mongoose.disconnect()
+  })
 })
 
 test('create organization', () => {
-  return org.save().then(result => {
-    console.log('create organization', org)
-    expect(result.name).toEqual(orgName)
-    expect(result.status).toEqual(orgStatus)
+  return organization.save().then(result => {
+    console.log('create organization', organization)
     expect(result.createdAt).toEqual(result.updatedAt)
-    expect(result.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(sensitiveWords))
-    expect(result.analyticRules.bannedWords).toEqual(expect.arrayContaining(bannedWords))
-    expect(result.analyticRules.emotionThreshold).toEqual(emotionThreshold)
-    expect(result.analyticRules.ratingThreshold).toEqual(ratingThreshold)
+    expect(result.name).toEqual(name)
+    expect(result.status).toEqual(status)
+    expect(result.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(analyticRules.sensitiveWords))
+    expect(result.analyticRules.bannedWords).toEqual(expect.arrayContaining(analyticRules.bannedWords))
+    expect(result.analyticRules.emotionThreshold).toEqual(analyticRules.emotionThreshold)
+    expect(result.analyticRules.ratingThreshold).toEqual(analyticRules.ratingThreshold)
   })
 })
 
 test('read organization', () => {
-  return Organization.findById(org._id).then(result => {
-    console.log('read organization', org)
-    expect(result.name).toEqual(orgName)
-    expect(result.status).toEqual(orgStatus)
-    expect(result.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(sensitiveWords))
-    expect(result.analyticRules.bannedWords).toEqual(expect.arrayContaining(bannedWords))
-    expect(result.analyticRules.emotionThreshold).toEqual(emotionThreshold)
-    expect(result.analyticRules.ratingThreshold).toEqual(ratingThreshold)
+  return Organization.findById(organization._id).then(result => {
+    console.log('read organization', organization)
+    expect(result.name).toEqual(name)
+    expect(result.status).toEqual(status)
+    expect(result.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(analyticRules.sensitiveWords))
+    expect(result.analyticRules.bannedWords).toEqual(expect.arrayContaining(analyticRules.bannedWords))
+    expect(result.analyticRules.emotionThreshold).toEqual(analyticRules.emotionThreshold)
+    expect(result.analyticRules.ratingThreshold).toEqual(analyticRules.ratingThreshold)
   })
 })
 
 test('update organization', () => {
-  return Organization.findByIdAndUpdate(org._id, {
+  return Organization.findByIdAndUpdate(organization._id, {
     'analyticRules.sensitiveWords': faker.lorem.words().split(' ')
   }, {
     new: true
   }).then(result => {
     console.log('update organization', result)
-    expect(result.name).toEqual(orgName)
-    expect(result.status).toEqual(orgStatus)
-    expect(result.analyticRules.sensitiveWords).not.toEqual(expect.arrayContaining(sensitiveWords))
-    expect(result.analyticRules.bannedWords).toEqual(expect.arrayContaining(bannedWords))
-    expect(result.analyticRules.emotionThreshold).toEqual(emotionThreshold)
-    expect(result.analyticRules.ratingThreshold).toEqual(ratingThreshold)
+    expect(result.name).toEqual(name)
+    expect(result.status).toEqual(status)
+    expect(result.analyticRules.sensitiveWords).not.toEqual(expect.arrayContaining(analyticRules.sensitiveWords))
+    expect(result.analyticRules.bannedWords).toEqual(expect.arrayContaining(analyticRules.bannedWords))
+    expect(result.analyticRules.emotionThreshold).toEqual(analyticRules.emotionThreshold)
+    expect(result.analyticRules.ratingThreshold).toEqual(analyticRules.ratingThreshold)
   })
 })
 
 test('delete organization', () => {
-  return Organization.findByIdAndRemove(org._id).then(result => {
+  return Organization.findByIdAndRemove(organization._id).then(result => {
     console.log('delete organization', result)
   })
 })
