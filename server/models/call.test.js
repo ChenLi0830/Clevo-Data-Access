@@ -39,7 +39,7 @@ const nlp = {
   processor: 'other',
   taskId: faker.random.uuid(),
   status: 'started',
-  result: null
+  result: undefined
 }
 const statistics = {
   speechDuration: 900 + faker.random.number(100),
@@ -152,36 +152,63 @@ test('create call', () => {
   })
 })
 
-// test('read organization', () => {
-//   return Organization.findById(org._id).then(result => {
-//     console.log('read organization', org)
-//     expect(result.name).toEqual(orgName)
-//     expect(result.status).toEqual(orgStatus)
-//     expect(result.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(sensitiveWords))
-//     expect(result.analyticRules.bannedWords).toEqual(expect.arrayContaining(bannedWords))
-//     expect(result.analyticRules.emotionThreshold).toEqual(emotionThreshold)
-//     expect(result.analyticRules.ratingThreshold).toEqual(ratingThreshold)
-//   })
-// })
+test('read call', () => {
+  return Call.findById(call.id).populate('staff').populate('organization').then(result => {
+    console.log('read call', result)
+    expect(result.createdAt).toEqual(result.updatedAt)
+    // expect(result.staff).toEqual(expect.objectContaining(staff))
+    // expect(result.organization).toEqual(expect.objectContaining(organization))
+    expect(result.status).toEqual(status)
+    expect(result.format).toEqual(format)
+    expect(result.encoding).toEqual(encoding)
+    expect(result.source).toEqual(source)
+    expect(result.startedAt).toEqual(startedAt)
+    expect(result.transcription.toJSON()).toEqual(transcription)
+    expect(result.emotion.toJSON()).toEqual(emotion)
+    expect(result.nlp.toJSON()).toEqual(nlp)
+    expect(result.statistics.toJSON()).toEqual(statistics)
+    expect(result.scores.toJSON()).toEqual(scores)
+    expect(result.breakdowns.length).toBe(breakdowns.length)
+    // result.breakdowns.forEach((breakdown, i) => {
+    //   expect(breakdown).toEqual(expect.objectContaining(breakdowns[i]))
+    // })
+    expect(result.subject).toEqual(subject)
+  })
+})
 
-// test('update organization', () => {
-//   return Organization.findByIdAndUpdate(org._id, {
-//     'analyticRules.sensitiveWords': faker.lorem.words().split(' ')
-//   }, {
-//     new: true
-//   }).then(result => {
-//     console.log('update organization', result)
-//     expect(result.name).toEqual(orgName)
-//     expect(result.status).toEqual(orgStatus)
-//     expect(result.analyticRules.sensitiveWords).not.toEqual(expect.arrayContaining(sensitiveWords))
-//     expect(result.analyticRules.bannedWords).toEqual(expect.arrayContaining(bannedWords))
-//     expect(result.analyticRules.emotionThreshold).toEqual(emotionThreshold)
-//     expect(result.analyticRules.ratingThreshold).toEqual(ratingThreshold)
-//   })
-// })
+test('update call', () => {
+  return Call.findByIdAndUpdate(call.id, {
+    'emotion.status': 'completed',
+    'emotion.result': {
+      scores: [1, 2, 3, 4, 5]
+    }
+  }, {
+    new: true
+  }).populate('staff').populate('organization').then(result => {
+    console.log('update call', result)
+    expect(result.createdAt).toEqual(result.updatedAt)
+    // expect(result.staff).toEqual(expect.objectContaining(staff))
+    // expect(result.organization).toEqual(expect.objectContaining(organization))
+    expect(result.status).toEqual(status)
+    expect(result.format).toEqual(format)
+    expect(result.encoding).toEqual(encoding)
+    expect(result.source).toEqual(source)
+    expect(result.startedAt).toEqual(startedAt)
+    expect(result.transcription.toJSON()).toEqual(transcription)
+    expect(result.emotion.toJSON()).not.toEqual(emotion)
+    expect(result.nlp.toJSON()).toEqual(nlp)
+    expect(result.statistics.toJSON()).toEqual(statistics)
+    expect(result.scores.toJSON()).toEqual(scores)
+    expect(result.breakdowns.length).toBe(breakdowns.length)
+    // result.breakdowns.forEach((breakdown, i) => {
+    //   expect(breakdown).toEqual(expect.objectContaining(breakdowns[i]))
+    // })
+    expect(result.subject).toEqual(subject)
+  })
+})
 
-// test('delete organization', () => {
-//   return Organization.findByIdAndRemove(org._id).then(result => {
-//     console.log('delete organization', result)
-//   })
-// })
+test('delete call', () => {
+  return Call.findByIdAndRemove(call.id).then(result => {
+    console.log('delete call', result)
+  })
+})

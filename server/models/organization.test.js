@@ -61,8 +61,8 @@ test('create organization', () => {
 })
 
 test('read organization', () => {
-  return Organization.findById(organization._id).then(result => {
-    console.log('read organization', organization)
+  return Organization.findById(organization.id).then(result => {
+    console.log('read organization', result)
     expect(result.name).toEqual(name)
     expect(result.status).toEqual(status)
     expect(result.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(analyticRules.sensitiveWords))
@@ -73,7 +73,7 @@ test('read organization', () => {
 })
 
 test('update organization', () => {
-  return Organization.findByIdAndUpdate(organization._id, {
+  return Organization.findByIdAndUpdate(organization.id, {
     'analyticRules.sensitiveWords': faker.lorem.words().split(' ')
   }, {
     new: true
@@ -89,7 +89,7 @@ test('update organization', () => {
 })
 
 test('delete organization', () => {
-  return Organization.findByIdAndRemove(organization._id).then(result => {
+  return Organization.findByIdAndRemove(organization.id).then(result => {
     console.log('delete organization', result)
   })
 })
