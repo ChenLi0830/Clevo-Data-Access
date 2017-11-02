@@ -107,6 +107,8 @@ const CallSchema = new Schema(
       sensitiveWords: [String]
     }],
     subject: String
+  }, {
+    timestamps: true
   }
 )
 

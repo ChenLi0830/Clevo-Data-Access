@@ -5,30 +5,37 @@ const faker = require('faker')
 const rp = require('request-promise')
 const PORT = process.env.PORT || 4000
 // const app = require('../server')
-// const server = app.listen(PORT, () => {
-//   console.log('Listening on port: ', PORT)
-// })
+// let server = null
 
 // beforeAll(() => {
 //   return new Promise((resolve, reject) => {
-//     setTimeout(() => {
-//       console.log('waited 5 sec')
-//       resolve(true)
-//     }, 5000)
+//     server = app.listen(PORT, () => {
+//       console.log('Server started on port: ', PORT)
+//       setTimeout(() => {
+//         resolve()
+//       }, 5000)
+//     })
 //   })
 // })
 
 // afterAll(() => {
-//   return server.close()
+//   return new Promise((resolve, reject) => {
+//     server.close(() => {
+//       console.log('Server closed on port: ', PORT)
+//       resolve()
+//     })
+//   })
 // })
 
 const variables = {
-  orgName: faker.company.companyName(),
-  orgStatus: 'active',
-  sensitiveWords: faker.lorem.words().split(' '),
-  bannedWords: faker.lorem.words().split(' '),
-  emotionThreshold: faker.random.number(1),
-  ratingThreshold: faker.random.number(5)
+  name: faker.company.companyName(),
+  status: 'active',
+  analyticRules: {
+    sensitiveWords: faker.lorem.words().split(' '),
+    bannedWords: faker.lorem.words().split(' '),
+    emotionThreshold: faker.random.number(1),
+    ratingThreshold: faker.random.number(5)
+  }
 }
 
 function graphqlQuery (name, query) {
@@ -45,11 +52,12 @@ function graphqlQuery (name, query) {
 }
 
 test('create organization', () => {
-  let operationName = 'orgCreate'
+  let operationName = 'organizationCreate'
   return graphqlQuery(operationName, `
-    mutation orgCreate($orgName: String, $orgStatus: EnumOrganizationStatus) { orgCreate (record: {
-      name: $orgName
-      status: $orgStatus
+    mutation organizationCreate($name: String, $status: EnumOrganizationStatus, $analyticRules: OrganizationAnalyticRulesInput) { organizationCreate (record: {
+      name: $name
+      status: $status
+      analyticRules: $analyticRules
     }) {
       recordId
       record {
@@ -57,24 +65,36 @@ test('create organization', () => {
         status
         createdAt
         updatedAt
+        analyticRules {
+          emotionThreshold
+          ratingThreshold
+          bannedWords
+          sensitiveWords
+        }
       }
     }}
   `).then(body => {
     let result = body.data
     console.log('create organization', result)
-    expect(result[operationName].record.name).toEqual(variables.orgName)
-    expect(result[operationName].record.status).toEqual(variables.orgStatus)
+    expect(result[operationName].record.name).toEqual(variables.name)
+    expect(result[operationName].record.status).toEqual(variables.status)
     expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)
+    expect(result[operationName].record.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(variables.analyticRules.sensitiveWords))
+    expect(result[operationName].record.analyticRules.bannedWords).toEqual(expect.arrayContaining(variables.analyticRules.bannedWords))
+    expect(result[operationName].record.analyticRules.emotionThreshold).toEqual(variables.analyticRules.emotionThreshold)
+    expect(result[operationName].record.analyticRules.ratingThreshold).toEqual(variables.analyticRules.ratingThreshold)
   })
 })
 
 test('read organization', () => {
-  let operationName = 'orgByName'
+  let operationName = 'organizationByName'
   return graphqlQuery(operationName, `
-    query orgByName($orgName: String!) { orgByName(name: $orgName) {
+    query organizationByName($name: String!) { organizationByName(name: $name) {
       _id
       name
       status
+      createdAt
+      updatedAt
       analyticRules {
         emotionThreshold
         ratingThreshold
@@ -85,29 +105,43 @@ test('read organization', () => {
   `).then(body => {
     let result = body.data
     console.log('read organization', result)
-    expect(result[operationName].name).toEqual(variables.orgName)
-    expect(result[operationName].status).toEqual(variables.orgStatus)
+    expect(result[operationName].name).toEqual(variables.name)
+    expect(result[operationName].status).toEqual(variables.status)
     expect(result[operationName].createdAt).toEqual(result[operationName].updatedAt)
+    expect(result[operationName].analyticRules.sensitiveWords).toEqual(expect.arrayContaining(variables.analyticRules.sensitiveWords))
+    expect(result[operationName].analyticRules.bannedWords).toEqual(expect.arrayContaining(variables.analyticRules.bannedWords))
+    expect(result[operationName].analyticRules.emotionThreshold).toEqual(variables.analyticRules.emotionThreshold)
+    expect(result[operationName].analyticRules.ratingThreshold).toEqual(variables.analyticRules.ratingThreshold)
   })
 })
 
 test('delete organization', () => {
-  let operationName = 'orgDelByName'
+  let operationName = 'organizationDeleteByName'
   return graphqlQuery(operationName, `
-    mutation orgDelByName ($orgName: String!) { orgDelByName (name: $orgName) {
+    mutation organizationDeleteByName ($name: String!) { organizationDeleteByName (name: $name) {
       recordId
       record {
         name
         status
-        createdBy
         createdAt
         updatedAt
+        analyticRules {
+          emotionThreshold
+          ratingThreshold
+          bannedWords
+          sensitiveWords
+        }
       }
     }}
   `).then(body => {
     let result = body.data
     console.log('delete organization', result)
-    expect(result[operationName].record.name).toEqual(variables.orgName)
-    expect(result[operationName].record.status).toEqual(variables.orgStatus)
+    expect(result[operationName].record.name).toEqual(variables.name)
+    expect(result[operationName].record.status).toEqual(variables.status)
+    expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)
+    expect(result[operationName].record.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(variables.analyticRules.sensitiveWords))
+    expect(result[operationName].record.analyticRules.bannedWords).toEqual(expect.arrayContaining(variables.analyticRules.bannedWords))
+    expect(result[operationName].record.analyticRules.emotionThreshold).toEqual(variables.analyticRules.emotionThreshold)
+    expect(result[operationName].record.analyticRules.ratingThreshold).toEqual(variables.analyticRules.ratingThreshold)
   })
 })
