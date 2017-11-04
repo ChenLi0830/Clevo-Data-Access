@@ -1,6 +1,7 @@
 /* eslint-env jest */
 require('dotenv').config()
 
+const debug = require('debug')('call_graph.test')
 const faker = require('faker')
 const rp = require('request-promise')
 const PORT = process.env.PORT || 4000
@@ -10,7 +11,7 @@ const PORT = process.env.PORT || 4000
 // beforeAll(() => {
 //   return new Promise((resolve, reject) => {
 //     server = app.listen(PORT, () => {
-//       console.log('Server started on port: ', PORT)
+//       debug('Server started on port: ', PORT)
 //       setTimeout(() => {
 //         resolve()
 //       }, 5000)
@@ -21,7 +22,7 @@ const PORT = process.env.PORT || 4000
 // afterAll(() => {
 //   return new Promise((resolve, reject) => {
 //     server.close(() => {
-//       console.log('Server closed on port: ', PORT)
+//       debug('Server closed on port: ', PORT)
 //       resolve()
 //     })
 //   })
@@ -208,7 +209,7 @@ test('create call', () => {
     }}
   `).then(body => {
     let result = body.data
-    console.log('create call', result)
+    debug('create call', result)
     variables.id = result[operationName].recordId
     expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)
     // expect(result.staff).toEqual(expect.objectContaining(staff))
@@ -296,7 +297,7 @@ test('read call', () => {
     }}
   `).then(body => {
     let result = body.data
-    console.log('create call', result)
+    debug('create call', result)
     expect(result[operationName].createdAt).toEqual(result[operationName].updatedAt)
     // expect(result.staff).toEqual(expect.objectContaining(staff))
     // expect(result.organization).toEqual(expect.objectContaining(organization))
@@ -386,7 +387,7 @@ test('delete call', () => {
     }}
   `).then(body => {
     let result = body.data
-    console.log('delete call', result)
+    debug('delete call', result)
     expect(result[operationName].recordId).toEqual(variables.id)
     expect(result[operationName].record).toEqual(expect.anything())
   })

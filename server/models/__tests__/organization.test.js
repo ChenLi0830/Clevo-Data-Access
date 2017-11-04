@@ -1,10 +1,11 @@
 /* eslint-env jest */
 require('dotenv').config()
 
+const debug = require('debug')('organization.test')
 const mongoose = require('mongoose')
 const faker = require('faker')
 
-const Team = require('./team')
+const Team = require('../team')
 const team = new Team({
   name: faker.name.lastName(),
   status: 'active'
@@ -17,7 +18,7 @@ const analyticRules = {
   emotionThreshold: faker.random.number(1),
   ratingThreshold: faker.random.number(5)
 }
-const Organization = require('./organization')
+const Organization = require('../organization')
 let organization = new Organization({
   name,
   status,
@@ -32,11 +33,11 @@ beforeAll(() => {
   return mongoose.connect(process.env.MONGO_URI, {
     useMongoClient: true
   }).then(result => {
-    console.log('mongoose connected successfully')
+    debug('mongoose connected successfully')
     // seed team for test
     return team.save()
   }, error => {
-    console.log('mongoose connecting failed', error)
+    debug('mongoose connecting failed', error)
   })
 })
 
@@ -49,7 +50,7 @@ afterAll(() => {
 
 test('create organization', () => {
   return organization.save().then(result => {
-    console.log('create organization', organization)
+    debug('create organization', organization)
     expect(result.createdAt).toEqual(result.updatedAt)
     expect(result.name).toEqual(name)
     expect(result.status).toEqual(status)
@@ -62,7 +63,7 @@ test('create organization', () => {
 
 test('read organization', () => {
   return Organization.findById(organization.id).then(result => {
-    console.log('read organization', result)
+    debug('read organization', result)
     expect(result.name).toEqual(name)
     expect(result.status).toEqual(status)
     expect(result.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(analyticRules.sensitiveWords))
@@ -78,7 +79,7 @@ test('update organization', () => {
   }, {
     new: true
   }).then(result => {
-    console.log('update organization', result)
+    debug('update organization', result)
     expect(result.name).toEqual(name)
     expect(result.status).toEqual(status)
     expect(result.analyticRules.sensitiveWords).not.toEqual(expect.arrayContaining(analyticRules.sensitiveWords))
@@ -90,6 +91,6 @@ test('update organization', () => {
 
 test('delete organization', () => {
   return Organization.findByIdAndRemove(organization.id).then(result => {
-    console.log('delete organization', result)
+    debug('delete organization', result)
   })
 })

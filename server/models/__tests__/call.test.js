@@ -1,10 +1,11 @@
 /* eslint-env jest */
 require('dotenv').config()
 
+const debug = require('debug')('call.test')
 const mongoose = require('mongoose')
 const faker = require('faker')
 
-const User = require('./user')
+const User = require('../user')
 const staff = new User({
   email: faker.internet.email(),
   // password: faker.internet.password(),
@@ -14,7 +15,7 @@ const staff = new User({
   status: 'active',
   role: 'staff'
 })
-const Organization = require('./organization')
+const Organization = require('../organization')
 const organization = new Organization({
   name: faker.company.companyName()
 })
@@ -84,7 +85,7 @@ const breakdowns = [{
 }]
 const subject = faker.lorem.word()
 
-const Call = require('./call')
+const Call = require('../call')
 let call = new Call({
   staff,
   organization,
@@ -107,14 +108,14 @@ beforeAll(() => {
   return mongoose.connect(process.env.MONGO_URI, {
     useMongoClient: true
   }).then(result => {
-    console.log('mongoose connected successfully')
+    debug('mongoose connected successfully')
     // seed staff and organization for test
     return Promise.all([
       staff.save(),
       organization.save()
     ])
   }, error => {
-    console.log('mongoose connecting failed', error)
+    debug('mongoose connecting failed', error)
   })
 })
 
@@ -130,7 +131,7 @@ afterAll(() => {
 
 test('create call', () => {
   return call.save().then(result => {
-    console.log('create call', call)
+    debug('create call', call)
     expect(result.createdAt).toEqual(result.updatedAt)
     // expect(result.staff).toEqual(expect.objectContaining(staff))
     // expect(result.organization).toEqual(expect.objectContaining(organization))
@@ -154,7 +155,7 @@ test('create call', () => {
 
 test('read call', () => {
   return Call.findById(call.id).populate('staff').populate('organization').exec().then(result => {
-    console.log('read call', result)
+    debug('read call', result)
     expect(result.createdAt).toEqual(result.updatedAt)
     // expect(result.staff.toJSON()).toEqual(expect.objectContaining(staff))
     // expect(result.organization.toJSON()).toEqual(expect.objectContaining(organization))
@@ -185,7 +186,7 @@ test('update call', () => {
   }, {
     new: true
   }).populate('staff').populate('organization').exec().then(result => {
-    console.log('update call', result)
+    debug('update call', result)
     expect(result.createdAt).not.toEqual(result.updatedAt)
     // expect(result.staff.toJSON()).toEqual(expect.objectContaining(staff))
     // expect(result.organization.toJSON()).toEqual(expect.objectContaining(organization))
@@ -209,6 +210,6 @@ test('update call', () => {
 
 test('delete call', () => {
   return Call.findByIdAndRemove(call.id).then(result => {
-    console.log('delete call', result)
+    debug('delete call', result)
   })
 })

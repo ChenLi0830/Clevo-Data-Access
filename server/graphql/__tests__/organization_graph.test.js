@@ -1,6 +1,7 @@
 /* eslint-env jest */
 require('dotenv').config()
 
+const debug = require('debug')('organization_graph.test')
 const faker = require('faker')
 const rp = require('request-promise')
 const PORT = process.env.PORT || 4000
@@ -10,7 +11,7 @@ const PORT = process.env.PORT || 4000
 // beforeAll(() => {
 //   return new Promise((resolve, reject) => {
 //     server = app.listen(PORT, () => {
-//       console.log('Server started on port: ', PORT)
+//       debug('Server started on port: ', PORT)
 //       setTimeout(() => {
 //         resolve()
 //       }, 5000)
@@ -21,7 +22,7 @@ const PORT = process.env.PORT || 4000
 // afterAll(() => {
 //   return new Promise((resolve, reject) => {
 //     server.close(() => {
-//       console.log('Server closed on port: ', PORT)
+//       debug('Server closed on port: ', PORT)
 //       resolve()
 //     })
 //   })
@@ -75,7 +76,7 @@ test('create organization', () => {
     }}
   `).then(body => {
     let result = body.data
-    console.log('create organization', result)
+    debug('create organization', result)
     expect(result[operationName].record.name).toEqual(variables.name)
     expect(result[operationName].record.status).toEqual(variables.status)
     expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)
@@ -104,7 +105,7 @@ test('read organization', () => {
     }}
   `).then(body => {
     let result = body.data
-    console.log('read organization', result)
+    debug('read organization', result)
     expect(result[operationName].name).toEqual(variables.name)
     expect(result[operationName].status).toEqual(variables.status)
     expect(result[operationName].createdAt).toEqual(result[operationName].updatedAt)
@@ -135,7 +136,7 @@ test('delete organization', () => {
     }}
   `).then(body => {
     let result = body.data
-    console.log('delete organization', result)
+    debug('delete organization', result)
     expect(result[operationName].record.name).toEqual(variables.name)
     expect(result[operationName].record.status).toEqual(variables.status)
     expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)
