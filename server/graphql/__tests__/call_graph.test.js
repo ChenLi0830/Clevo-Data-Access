@@ -150,12 +150,17 @@ test('create call', () => {
       record {
         _id,
         status,
-        staff,
-        organization {
-          name
+        staff {
+          email,
+          staffId,
+          name,
+          title,
+          role,
           status
-          createdAt
-          updatedAt
+        },
+        organization {
+          name,
+          status
         },
         format,
         encoding,
@@ -239,12 +244,17 @@ test('read call', () => {
     ) {
       _id,
       status,
-      staff,
-      organization {
-        name
+      staff {
+        email,
+        staffId,
+        name,
+        title,
+        role,
         status
-        createdAt
-        updatedAt
+      },
+      organization {
+        name,
+        status
       },
       format,
       encoding,
@@ -297,7 +307,7 @@ test('read call', () => {
     }}
   `).then(body => {
     let result = body.data
-    debug('create call', result)
+    debug('read call', result)
     expect(result[operationName].createdAt).toEqual(result[operationName].updatedAt)
     // expect(result.staff).toEqual(expect.objectContaining(staff))
     // expect(result.organization).toEqual(expect.objectContaining(organization))
@@ -328,12 +338,17 @@ test('delete call', () => {
       record {
         _id,
         status,
-        staff,
-        organization {
-          name
+        staff {
+          email,
+          staffId,
+          name,
+          title,
+          role,
           status
-          createdAt
-          updatedAt
+        },
+        organization {
+          name,
+          status
         },
         format,
         encoding,
