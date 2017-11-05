@@ -90,7 +90,9 @@ test('update organization', () => {
 })
 
 test('delete organization', () => {
-  return Organization.findByIdAndRemove(organization.id).then(result => {
-    debug('delete organization', result)
+  return Organization.findById(organization.id).exec().then(record => {
+    return record.remove().then(result => {
+      debug('delete organization', result)
+    })
   })
 })

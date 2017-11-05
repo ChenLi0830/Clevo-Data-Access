@@ -30,6 +30,7 @@
     "graphql-tools": "^2.6.1",
     "html-webpack-plugin": "^2.26.0",
     "mongoose": "^4.12.4",
+    "mongoose-unique-validator": "^1.0.6",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^4.4.0",

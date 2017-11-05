@@ -11,7 +11,7 @@ const CallSchema = new Schema(
     },
     staff: {
       type: Schema.Types.ObjectId,
-      ref: 'user'
+      ref: 'User'
     },
     organization: {
       type: Schema.Types.ObjectId,
