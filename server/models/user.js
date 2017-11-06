@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt-nodejs')
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
-const debug = require('debug')('user_schema')
+// const debug = require('debug')('user_schema')
 const uniqueValidator = require('mongoose-unique-validator')
 
 // Every user has an email and password.  The password is not stored as
@@ -55,6 +55,60 @@ const UserSchema = new Schema({
 
 UserSchema.plugin(uniqueValidator)
 
+// // Syncronize with team.users
+// UserSchema.pre('save', function save (next) {
+//   debug('pre save started', this, this.isModified('team'))
+//   if (this.isModified('team')) {
+//     // remove the user from the previous team
+//     mongoose.model('Team').find({
+//       'users': this.id
+//     }).exec().then(teams => {
+//       let todos = []
+//       teams.forEach(team => {
+//         team.users.pull(this.id)
+//         todos.push(team.save())
+//       })
+//       // add the user to the current team
+//       return mongoose.model('Team').findById(this.team).exec().then(team => {
+//         team.users.addToSet(this.id)
+//         todos.push(team.save())
+//         return todos
+//       })
+//     }).then((all) => {
+//       debug('team(s) to sync: ', all.length)
+//       Promise.all(all).then(result => {
+//         debug('pre save finished', result)
+//         next()
+//       })
+//     })
+//   } else {
+//     next()
+//   }
+// })
+
+// // Syncronize with team.users
+// UserSchema.post('remove', function save (doc, next) {
+//   // debug('user team synchronization failed! ', error)
+//   debug('post remove started', this)
+//   // remove the user from the current team(s), in theory, there should be only one, but just in case
+//   mongoose.model('Team').find({
+//     'users': this.id
+//   }).exec().then(teams => {
+//     let todos = []
+//     teams.forEach(team => {
+//       team.users.pull(this.id)
+//       todos.push(team.save())
+//     })
+//     return todos
+//   }).then((all) => {
+//     debug('team(s) to sync: ', all.length)
+//     Promise.all(all).then(result => {
+//       debug('post remove finished', result)
+//       next()
+//     })
+//   })
+// })
+
 // The user's password is never saved in plain text.  Prior to saving the
 // user model, we 'salt' and 'hash' the users password.  This is a one way
 // procedure that modifies the password - the plain text password cannot be
@@ -68,60 +122,6 @@ UserSchema.pre('save', function save (next) {
     bcrypt.hash(user.password, salt, null, (err, hash) => {
       if (err) { return next(err) }
       user.password = hash
-      next()
-    })
-  })
-})
-
-// Syncronize with team.users
-UserSchema.pre('save', function save (next) {
-  debug('pre save started', this, this.isModified('team'))
-  if (this.isModified('team')) {
-    // remove the user from the previous team
-    mongoose.model('Team').find({
-      'users': this.id
-    }).exec().then(teams => {
-      let todos = []
-      teams.forEach(team => {
-        team.users.pull(this.id)
-        todos.push(team.save())
-      })
-      // add the user to the current team
-      return mongoose.model('Team').findById(this.team).exec().then(team => {
-        team.users.addToSet(this.id)
-        todos.push(team.save())
-        return todos
-      })
-    }).then((all) => {
-      debug('team(s) to sync: ', all.length)
-      Promise.all(all).then(result => {
-        debug('pre save finished', result)
-        next()
-      })
-    })
-  } else {
-    next()
-  }
-})
-
-// Syncronize with team.users
-UserSchema.post('remove', function save (doc, next) {
-  // debug('user team synchronization failed! ', error)
-  debug('post remove started', this)
-  // remove the user from the current team(s), in theory, there should be only one, but just in case
-  mongoose.model('Team').find({
-    'users': this.id
-  }).exec().then(teams => {
-    let todos = []
-    teams.forEach(team => {
-      team.users.pull(this.id)
-      todos.push(team.save())
-    })
-    return todos
-  }).then((all) => {
-    debug('team(s) to sync: ', all.length)
-    Promise.all(all).then(result => {
-      debug('post remove finished', result)
       next()
     })
   })

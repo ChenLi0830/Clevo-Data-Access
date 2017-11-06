@@ -15,7 +15,8 @@ const status = 'active'
 const Team = require('../team')
 const team = new Team({
   name,
-  status
+  status,
+  organization
 })
 
 beforeAll(() => {
@@ -41,6 +42,15 @@ afterAll(() => {
 test('create team', () => {
   return team.save().then(result => {
     debug('create team', result)
+    expect(result.createdAt).toEqual(result.updatedAt)
+    expect(result.name).toEqual(name)
+    expect(result.status).toEqual(status)
+  })
+})
+
+test('read team', () => {
+  return Team.findById(team.id).exec().then(result => {
+    debug('read team', result)
     expect(result.createdAt).toEqual(result.updatedAt)
     expect(result.name).toEqual(name)
     expect(result.status).toEqual(status)

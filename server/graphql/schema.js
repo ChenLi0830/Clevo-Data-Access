@@ -33,20 +33,20 @@ TeamType.addRelation('organization', {
   },
   projection: { organization: true }
 })
-TeamType.addRelation('users', {
-  resolver: UserType.getResolver('findByIds'),
-  prepareArgs: {
-    _ids: (source) => source.users
-  },
-  projection: { users: true }
-})
-OrganizationType.addRelation('teams', {
-  resolver: TeamType.getResolver('findByIds'),
-  prepareArgs: {
-    _ids: (source) => source.teams
-  },
-  projection: { teams: true }
-})
+// TeamType.addRelation('users', {
+//   resolver: UserType.getResolver('findByIds'),
+//   prepareArgs: {
+//     _ids: (source) => source.users
+//   },
+//   projection: { users: true }
+// })
+// OrganizationType.addRelation('teams', {
+//   resolver: TeamType.getResolver('findByIds'),
+//   prepareArgs: {
+//     _ids: (source) => source.teams
+//   },
+//   projection: { teams: true }
+// })
 CallType.addRelation('staff', {
   resolver: UserType.getResolver('findById'),
   prepareArgs: {
@@ -66,6 +66,7 @@ CallType.addRelation('organization', {
 const { ComposeStorage } = require('graphql-compose')
 const GQC = new ComposeStorage()
 GQC.rootQuery().addFields({
+  // userCurrent: UserType.getResolver('current'),
   userById: UserType.getResolver('findById'),
   userByEmail: UserType.getResolver('findByEmail'), // custom resolver
   usersByIds: UserType.getResolver('findByIds'),
@@ -83,6 +84,9 @@ GQC.rootQuery().addFields({
   calls: CallType.getResolver('findMany')
 })
 GQC.rootMutation().addFields({
+  // userLogin: UserType.getResolver('login'),
+  // userLogout: UserType.getResolver('logout'),
+  // userSignup: UserType.getResolver('signup'),
   userCreate: UserType.getResolver('createOne'),
   userUpdate: UserType.getResolver('updateById'),
   userDelete: UserType.getResolver('removeById'),
