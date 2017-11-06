@@ -81,7 +81,6 @@ test('create user', () => {
       record {
         email,
         staffId,
-        password,
         name,
         title,
         role,
@@ -115,7 +114,6 @@ test('create user', () => {
     debug('create user', result)
     expect(result[operationName].record.email).toEqual(variables.email.toLocaleLowerCase())
     expect(result[operationName].record.staffId).toEqual(variables.staffId.toString())
-    expect(result[operationName].record.password).not.toEqual(variables.password)
     expect(result[operationName].record.name).toEqual(variables.name)
     expect(result[operationName].record.title).toEqual(variables.title)
     expect(result[operationName].record.role).toEqual(variables.role)
@@ -134,7 +132,6 @@ test('read user', () => {
     ) {
       email,
       staffId,
-      password,
       name,
       title,
       role,
@@ -167,12 +164,103 @@ test('read user', () => {
     debug('read user', result)
     expect(result[operationName].email).toEqual(variables.email.toLocaleLowerCase())
     expect(result[operationName].staffId).toEqual(variables.staffId.toString())
-    expect(result[operationName].password).not.toEqual(variables.password)
     expect(result[operationName].name).toEqual(variables.name)
     expect(result[operationName].title).toEqual(variables.title)
     expect(result[operationName].role).toEqual(variables.role)
     expect(result[operationName].status).toEqual(variables.status)
     expect(result[operationName].createdAt).toEqual(result[operationName].updatedAt)
+  })
+})
+
+test('read users by team', () => {
+  let operationName = 'users'
+  return graphqlQuery(operationName, `
+    query users(
+      $team: MongoID
+    ) { users(
+      filter: {
+        team: $team
+      }
+    ) {
+      email,
+      staffId,
+      name,
+      title,
+      role,
+      status,
+      team {
+        _id,
+        name,
+        status,
+        createdAt,
+        updatedAt
+      },
+      organization {
+        _id,
+        name,
+        status,
+        createdAt,
+        updatedAt,
+        analyticRules {
+          emotionThreshold,
+          ratingThreshold,
+          bannedWords,
+          sensitiveWords
+        }
+      },
+      createdAt,
+      updatedAt
+    }}
+  `).then(body => {
+    let result = body.data
+    debug('read users by team', result)
+    expect(result[operationName].length).toBeGreaterThanOrEqual(1)
+  })
+})
+
+test('read users by organization', () => {
+  let operationName = 'users'
+  return graphqlQuery(operationName, `
+    query users(
+      $organization: MongoID
+    ) { users(
+      filter: {
+        organization: $organization
+      }
+    ) {
+      email,
+      staffId,
+      name,
+      title,
+      role,
+      status,
+      team {
+        _id,
+        name,
+        status,
+        createdAt,
+        updatedAt
+      },
+      organization {
+        _id,
+        name,
+        status,
+        createdAt,
+        updatedAt,
+        analyticRules {
+          emotionThreshold,
+          ratingThreshold,
+          bannedWords,
+          sensitiveWords
+        }
+      },
+      createdAt,
+      updatedAt
+    }}
+  `).then(body => {
+    let result = body.data
+    debug('read users by organization', result)
+    expect(result[operationName].length).toBeGreaterThanOrEqual(1)
   })
 })
 
@@ -188,7 +276,6 @@ test('delete user', () => {
       record {
         email,
         staffId,
-        password,
         name,
         title,
         role,

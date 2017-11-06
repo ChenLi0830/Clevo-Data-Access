@@ -55,7 +55,11 @@ function graphqlQuery (name, query) {
 test('create organization', () => {
   let operationName = 'organizationCreate'
   return graphqlQuery(operationName, `
-    mutation organizationCreate($name: String, $status: EnumOrganizationStatus, $analyticRules: OrganizationAnalyticRulesInput) { organizationCreate (record: {
+    mutation organizationCreate(
+      $name: String, 
+      $status: EnumOrganizationStatus, 
+      $analyticRules: OrganizationAnalyticRulesInput
+    ) { organizationCreate (record: {
       name: $name
       status: $status
       analyticRules: $analyticRules
@@ -77,6 +81,7 @@ test('create organization', () => {
   `).then(body => {
     let result = body.data
     debug('create organization', result)
+    variables.id = result[operationName].recordId
     expect(result[operationName].record.name).toEqual(variables.name)
     expect(result[operationName].record.status).toEqual(variables.status)
     expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)
@@ -90,7 +95,11 @@ test('create organization', () => {
 test('read organization', () => {
   let operationName = 'organizationByName'
   return graphqlQuery(operationName, `
-    query organizationByName($name: String!) { organizationByName(name: $name) {
+    query organizationByName(
+      $name: String!
+    ) { organizationByName(
+      name: $name
+    ) {
       _id
       name
       status
@@ -116,6 +125,44 @@ test('read organization', () => {
   })
 })
 
+test('update organization', () => {
+  let operationName = 'organizationUpdate'
+  variables.status = 'inactive'
+  return graphqlQuery(operationName, `
+    mutation organizationUpdate(
+      $id: MongoID!,
+      $status: EnumOrganizationStatus
+    ) { organizationUpdate (record: {
+      _id: $id,
+      status: $status
+    }) {
+      recordId
+      record {
+        name
+        status
+        createdAt
+        updatedAt
+        analyticRules {
+          emotionThreshold
+          ratingThreshold
+          bannedWords
+          sensitiveWords
+        }
+      }
+    }}
+  `).then(body => {
+    let result = body.data
+    debug('update organization', result)
+    expect(result[operationName].record.name).toEqual(variables.name)
+    expect(result[operationName].record.status).toEqual(variables.status)
+    expect(result[operationName].record.createdAt).not.toEqual(result[operationName].record.updatedAt)
+    expect(result[operationName].record.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(variables.analyticRules.sensitiveWords))
+    expect(result[operationName].record.analyticRules.bannedWords).toEqual(expect.arrayContaining(variables.analyticRules.bannedWords))
+    expect(result[operationName].record.analyticRules.emotionThreshold).toEqual(variables.analyticRules.emotionThreshold)
+    expect(result[operationName].record.analyticRules.ratingThreshold).toEqual(variables.analyticRules.ratingThreshold)
+  })
+})
+
 test('delete organization', () => {
   let operationName = 'organizationDeleteByName'
   return graphqlQuery(operationName, `
@@ -138,8 +185,8 @@ test('delete organization', () => {
     let result = body.data
     debug('delete organization', result)
     expect(result[operationName].record.name).toEqual(variables.name)
-    expect(result[operationName].record.status).toEqual(variables.status)
-    expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)
+    // expect(result[operationName].record.status).toEqual(variables.status)
+    // expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)
     expect(result[operationName].record.analyticRules.sensitiveWords).toEqual(expect.arrayContaining(variables.analyticRules.sensitiveWords))
     expect(result[operationName].record.analyticRules.bannedWords).toEqual(expect.arrayContaining(variables.analyticRules.bannedWords))
     expect(result[operationName].record.analyticRules.emotionThreshold).toEqual(variables.analyticRules.emotionThreshold)

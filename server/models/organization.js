@@ -20,11 +20,7 @@ const OrganizationSchema = new Schema(
       bannedWords: [String],
       emotionThreshold: Number,
       ratingThreshold: Number
-    },
-    teams: [{
-      type: Schema.Types.ObjectId,
-      ref: 'Team'
-    }]
+    }
   }, {
     timestamps: true
   }
