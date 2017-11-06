@@ -54,29 +54,29 @@ function graphqlQuery (name, query) {
 }
 
 test('create user', () => {
-  let operationName = 'userCreate'
+  let operationName = 'userSignup'
   return graphqlQuery(operationName, `
-    mutation userCreate(
-      $email: String,
-      $staffId: String,
-      $password: String,
-      $name: String, 
+    mutation userSignup(
+      $email: String!,
+      $password: String!,
+      $staffId: String!,
+      $name: String!, 
       $title: String,
       $role: EnumUserRole,
       $status: EnumUserStatus,
-      $team: MongoID,
-      $organization: MongoID
-    ) { userCreate (record: {
+      $team: MongoID!,
+      $organization: MongoID!
+    ) { userSignup (
       email: $email,
-      staffId: $staffId,
       password: $password,
+      staffId: $staffId,
       name: $name,
       title: $title,
       role: $role,
       status: $status,
       team: $team,
       organization: $organization
-    }) {
+    ) {
       recordId
       record {
         email,
