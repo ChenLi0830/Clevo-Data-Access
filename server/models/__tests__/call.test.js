@@ -5,19 +5,25 @@ const debug = require('debug')('call.test')
 const mongoose = require('mongoose')
 const faker = require('faker')
 
-const User = require('../user')
-const staff = new User({
-  email: faker.internet.email(),
-  // password: faker.internet.password(),
-  title: faker.name.jobTitle(),
-  name: faker.name.findName(),
-  staffId: faker.random.number(1000),
-  status: 'active',
-  role: 'staff'
-})
 const Organization = require('../organization')
 const organization = new Organization({
   name: faker.company.companyName()
+})
+const Team = require('../team')
+const team = new Team({
+  name: faker.name.lastName()
+})
+const User = require('../user')
+const staff = new User({
+  email: faker.internet.email(),
+  staffId: faker.random.number(1000),
+  password: faker.internet.password(),
+  name: faker.name.findName(),
+  title: faker.name.jobTitle(),
+  role: 'staff',
+  status: 'active',
+  team: team,
+  organization: organization
 })
 const status = 'active'
 const format = 'mp3'
@@ -110,10 +116,11 @@ beforeAll(() => {
   }).then(result => {
     debug('mongoose connected successfully')
     // seed staff and organization for test
-    return Promise.all([
-      staff.save(),
-      organization.save()
-    ])
+    return organization.save().then(a => {
+      return team.save().then(b => {
+        return staff.save()
+      })
+    })
   }, error => {
     debug('mongoose connecting failed', error)
   })
@@ -121,10 +128,11 @@ beforeAll(() => {
 
 afterAll(() => {
   // cleanup staff and organization for test
-  Promise.all([
-    staff.remove(),
-    organization.remove()
-  ]).then(result => {
+  return staff.remove().then(a => {
+    return team.remove().then(b => {
+      return organization.remove()
+    })
+  }).then(result => {
     return mongoose.disconnect()
   })
 })
@@ -209,7 +217,9 @@ test('update call', () => {
 })
 
 test('delete call', () => {
-  return Call.findByIdAndRemove(call.id).then(result => {
-    debug('delete call', result)
+  return Call.findById(call.id).exec().then(record => {
+    return record.remove().then(result => {
+      debug('delete call', result)
+    })
   })
 })
