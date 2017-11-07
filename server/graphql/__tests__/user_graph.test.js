@@ -41,6 +41,8 @@ const variables = {
   organization: '59f8e428a773be264cffc56f'
 }
 
+console.log('user test variables', variables)
+
 function graphqlQuery (name, query) {
   return rp({
     method: 'POST',
@@ -54,6 +56,7 @@ function graphqlQuery (name, query) {
   })
 }
 
+// Todo: check if organization member will be added automatically when a new user is created
 test('create user', () => {
   let operationName = 'userSignup'
   return graphqlQuery(operationName, `
@@ -262,6 +265,7 @@ test('read users by organization', () => {
   })
 })
 
+// Todo: test changePassword method for both success and failure scenarios
 test('changePassword', () => {
   let operationName = 'userChangePassword'
   return graphqlQuery(operationName, `
@@ -366,6 +370,7 @@ test('resetPassword', () => {
   })
 })
 
+// Todo: check if organization member will be removed automatically when a new user is created
 test('delete user', () => {
   let operationName = 'userDeleteByEmail'
   return graphqlQuery(operationName, `
