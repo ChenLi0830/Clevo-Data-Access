@@ -65,6 +65,8 @@ GQC.rootMutation().addFields({
   userLogin: UserType.getResolver('login'), // custom resolver
   userLogout: UserType.getResolver('logout'), // custom resolver
   userSignup: UserType.getResolver('signup'), // custom resolver
+  userResetPassword: UserType.getResolver('resetPassword'), // custom resolver
+  userChangePassword: UserType.getResolver('changePassword'), // custom resolver
   userUpdate: UserType.getResolver('updateById'),
   userDelete: UserType.getResolver('removeById'),
   userDeleteByEmail: UserType.getResolver('removeByEmail'),  // custom resolver

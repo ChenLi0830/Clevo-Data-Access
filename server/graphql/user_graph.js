@@ -13,7 +13,7 @@ UserType.removeField('password')
 // add additional resolvers
 UserType.addResolver({
   name: 'signup',
-  type: UserType.getResolver('createOne').getType(),
+  type: UserType,
   args: {
     email: new GraphQLNonNull(UserType.getFieldType('email')),
     password: 'String!',
@@ -30,10 +30,7 @@ UserType.addResolver({
       return new Promise((resolve, reject) => {
         context.login(result, (err) => {
           if (err) { reject(err) }
-          resolve({
-            recordId: result._id,
-            record: result
-          })
+          resolve(result)
         })
       })
     })
@@ -81,6 +78,44 @@ UserType.addResolver({
   type: UserType,
   resolve: ({source, args, context, info}) => {
     return context.user
+  }
+})
+
+UserType.addResolver({
+  name: 'resetPassword',
+  type: UserType,
+  args: {
+    email: 'String!'
+  },
+  resolve: ({source, args, context, info}) => {
+    return User.findOne({email: args.email.toLowerCase()}).then(user => {
+      user.password = undefined
+      return user.save()
+    })
+  }
+})
+
+UserType.addResolver({
+  name: 'changePassword',
+  type: UserType,
+  args: {
+    email: 'String!',
+    oldPassword: 'String!',
+    newPassword: 'String!'
+  },
+  resolve: ({source, args, context, info}) => {
+    return User.findOne({email: args.email.toLowerCase()}).then(user => {
+      return new Promise((resolve, reject) => {
+        user.comparePassword(args.oldPassword, (err, isMatch) => {
+          if (err) { reject(err) }
+          if (isMatch) {
+            user.password = args.newPassword
+            resolve(user.save())
+          }
+          reject(new Error('Invalid credentials.'))
+        })
+      })
+    })
   }
 })
 

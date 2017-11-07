@@ -21,8 +21,8 @@ const UserSchema = new Schema({
     index: true
   },
   password: {
-    type: String,
-    required: true
+    type: String
+    // required: true
   },
   name: {
     type: String,
@@ -117,6 +117,7 @@ UserSchema.plugin(uniqueValidator)
 UserSchema.pre('save', function save (next) {
   const user = this
   if (!user.isModified('password')) { return next() }
+  if (!user.password) { return next() }
   bcrypt.genSalt(10, (err, salt) => {
     if (err) { return next(err) }
     bcrypt.hash(user.password, salt, null, (err, hash) => {
