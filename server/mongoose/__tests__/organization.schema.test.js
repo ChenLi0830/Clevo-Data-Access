@@ -1,15 +1,11 @@
 /* eslint-env jest */
 require('dotenv').config()
 
-const debug = require('debug')('organization.test')
+const debug = require('debug')('organization.schema.test')
 const mongoose = require('mongoose')
 const faker = require('faker')
+const { OrganizationSchema } = require('../')
 
-const Team = require('../team')
-const team = new Team({
-  name: faker.name.lastName(),
-  status: 'active'
-})
 const name = faker.company.companyName()
 const status = 'active'
 const analyticRules = {
@@ -18,14 +14,11 @@ const analyticRules = {
   emotionThreshold: faker.random.number(1),
   ratingThreshold: faker.random.number(5)
 }
-const Organization = require('../organization')
-let organization = new Organization({
+
+let organization = new OrganizationSchema({
   name,
   status,
-  analyticRules,
-  teams: [
-    team
-  ]
+  analyticRules
 })
 
 beforeAll(() => {
@@ -34,18 +27,13 @@ beforeAll(() => {
     useMongoClient: true
   }).then(result => {
     debug('mongoose connected successfully')
-    // seed team for test
-    return team.save()
   }, error => {
     debug('mongoose connecting failed', error)
   })
 })
 
 afterAll(() => {
-  // cleanup team for test
-  return team.remove().then(result => {
-    return mongoose.disconnect()
-  })
+  return mongoose.disconnect()
 })
 
 test('create organization', () => {
@@ -62,7 +50,7 @@ test('create organization', () => {
 })
 
 test('read organization', () => {
-  return Organization.findById(organization.id).then(result => {
+  return OrganizationSchema.findById(organization.id).then(result => {
     debug('read organization', result)
     expect(result.name).toEqual(name)
     expect(result.status).toEqual(status)
@@ -74,7 +62,7 @@ test('read organization', () => {
 })
 
 test('update organization', () => {
-  return Organization.findByIdAndUpdate(organization.id, {
+  return OrganizationSchema.findByIdAndUpdate(organization.id, {
     'analyticRules.sensitiveWords': faker.lorem.words().split(' ')
   }, {
     new: true
@@ -90,7 +78,7 @@ test('update organization', () => {
 })
 
 test('delete organization', () => {
-  return Organization.findById(organization.id).exec().then(record => {
+  return OrganizationSchema.findById(organization.id).exec().then(record => {
     return record.remove().then(result => {
       debug('delete organization', result)
     })

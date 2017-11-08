@@ -1,19 +1,18 @@
 /* eslint-env jest */
 require('dotenv').config()
 
-const debug = require('debug')('team.test')
+const debug = require('debug')('team.schema.test')
 const mongoose = require('mongoose')
 const faker = require('faker')
 
-const Organization = require('../organization')
-const organization = new Organization({
+const { OrganizationSchema, TeamSchema } = require('../')
+const organization = new OrganizationSchema({
   name: faker.company.companyName()
 })
 const name = faker.name.lastName()
 const status = 'active'
 
-const Team = require('../team')
-const team = new Team({
+const team = new TeamSchema({
   name,
   status,
   organization
@@ -49,7 +48,7 @@ test('create team', () => {
 })
 
 test('read team', () => {
-  return Team.findById(team.id).exec().then(result => {
+  return TeamSchema.findById(team.id).exec().then(result => {
     debug('read team', result)
     expect(result.createdAt).toEqual(result.updatedAt)
     expect(result.name).toEqual(name)
@@ -58,7 +57,7 @@ test('read team', () => {
 })
 
 // test('update team', () => {
-//   return Team.findById(team.id).exec().then(record => {
+//   return TeamSchema.findById(team.id).exec().then(record => {
 //     record.organization = '59f8e428a773be264cffc56f'
 //     return record.save().then(result => {
 //       debug('update team', result)
@@ -67,7 +66,7 @@ test('read team', () => {
 // })
 
 test('delete team', () => {
-  return Team.findById(team.id).exec().then(record => {
+  return TeamSchema.findById(team.id).exec().then(record => {
     return record.remove().then(result => {
       debug('delete team', result)
     })

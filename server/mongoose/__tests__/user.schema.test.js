@@ -1,16 +1,15 @@
 /* eslint-env jest */
 require('dotenv').config()
 
-const debug = require('debug')('user.test')
+const debug = require('debug')('user.schema.test')
 const mongoose = require('mongoose')
 const faker = require('faker')
+const { OrganizationSchema, TeamSchema, UserSchema } = require('../')
 
-const Organization = require('../organization')
-const organization = new Organization({
+const organization = new OrganizationSchema({
   name: faker.company.companyName()
 })
-const Team = require('../team')
-const team = new Team({
+const team = new TeamSchema({
   name: faker.name.lastName()
 })
 const email = faker.internet.email()
@@ -21,8 +20,7 @@ const title = faker.name.jobTitle()
 const role = 'staff'
 const status = 'active'
 
-const User = require('../user')
-const user = new User({
+const user = new UserSchema({
   email,
   staffId,
   password,
@@ -82,7 +80,7 @@ test('create user', () => {
 // })
 
 test('delete user', () => {
-  return User.findById(user.id).exec().then(record => {
+  return UserSchema.findById(user.id).exec().then(record => {
     return record.remove().then(result => {
       debug('delete user', result)
     })
