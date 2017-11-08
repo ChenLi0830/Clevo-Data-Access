@@ -1,7 +1,7 @@
 /* eslint-env jest */
 require('dotenv').config()
 
-const debug = require('debug')('user_graph.test')
+const debug = require('debug')('user.type.test')
 const faker = require('faker')
 const rp = require('request-promise')
 const PORT = process.env.PORT || 4000
@@ -40,8 +40,6 @@ const variables = {
   team: '59f8b2653d21031560e1ecc2',
   organization: '59f8e428a773be264cffc56f'
 }
-
-console.log('user test variables', variables)
 
 function graphqlQuery (name, query) {
   return rp({

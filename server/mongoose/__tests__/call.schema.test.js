@@ -4,17 +4,16 @@ require('dotenv').config()
 const debug = require('debug')('call.test')
 const mongoose = require('mongoose')
 const faker = require('faker')
+const { CallSchema, OrganizationSchema, TeamSchema, UserSchema } = require('../')
 
-const Organization = require('../organization')
-const organization = new Organization({
+const organization = new OrganizationSchema({
   name: faker.company.companyName()
 })
-const Team = require('../team')
-const team = new Team({
-  name: faker.name.lastName()
+const team = new TeamSchema({
+  name: faker.name.lastName(),
+  organization: organization
 })
-const User = require('../user')
-const staff = new User({
+const staff = new UserSchema({
   email: faker.internet.email(),
   staffId: faker.random.number(1000),
   password: faker.internet.password(),
@@ -91,8 +90,7 @@ const breakdowns = [{
 }]
 const subject = faker.lorem.word()
 
-const Call = require('../call')
-let call = new Call({
+let call = new CallSchema({
   staff,
   organization,
   status,
@@ -115,7 +113,7 @@ beforeAll(() => {
     useMongoClient: true
   }).then(result => {
     debug('mongoose connected successfully')
-    // seed staff and organization for test
+    // seed staff, team, and organization for test
     return organization.save().then(a => {
       return team.save().then(b => {
         return staff.save()
@@ -127,7 +125,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  // cleanup staff and organization for test
+  // cleanup staff, team, and organization for test
   return staff.remove().then(a => {
     return team.remove().then(b => {
       return organization.remove()
@@ -162,7 +160,7 @@ test('create call', () => {
 })
 
 test('read call', () => {
-  return Call.findById(call.id).populate('staff').populate('organization').exec().then(result => {
+  return CallSchema.findById(call.id).populate('staff').populate('organization').exec().then(result => {
     debug('read call', result)
     expect(result.createdAt).toEqual(result.updatedAt)
     // expect(result.staff.toJSON()).toEqual(expect.objectContaining(staff))
@@ -186,7 +184,7 @@ test('read call', () => {
 })
 
 test('update call', () => {
-  return Call.findByIdAndUpdate(call.id, {
+  return CallSchema.findByIdAndUpdate(call.id, {
     'emotion.status': 'completed',
     'emotion.result': {
       scores: [1, 2, 3, 4, 5]
@@ -217,7 +215,7 @@ test('update call', () => {
 })
 
 test('delete call', () => {
-  return Call.findById(call.id).exec().then(record => {
+  return CallSchema.findById(call.id).exec().then(record => {
     return record.remove().then(result => {
       debug('delete call', result)
     })

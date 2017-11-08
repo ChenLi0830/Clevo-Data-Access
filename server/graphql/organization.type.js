@@ -1,8 +1,8 @@
-const {composeWithMongoose} = require('graphql-compose-mongoose')
+const { composeWithMongoose } = require('graphql-compose-mongoose')
 
 // convert mongoose schema
-const Organization = require('../models/organization')
-const OrganizationType = composeWithMongoose(Organization)
+const { OrganizationSchema } = require('../mongoose')
+const OrganizationType = composeWithMongoose(OrganizationSchema)
 
 // add additional resolvers
 OrganizationType.addResolver({
@@ -12,7 +12,7 @@ OrganizationType.addResolver({
     name: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    return Organization.findOne({name: args.name})
+    return OrganizationSchema.findOne({name: args.name})
   }
 })
 
@@ -23,7 +23,7 @@ OrganizationType.addResolver({
     name: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    return Organization.findOneAndRemove({name: args.name}).then(result => {
+    return OrganizationSchema.findOneAndRemove({name: args.name}).then(result => {
       return {
         recordId: result.id,
         record: result

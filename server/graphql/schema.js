@@ -1,7 +1,4 @@
-const UserType = require('./user_graph')
-const TeamType = require('./team_graph')
-const OrganizationType = require('./organization_graph')
-const CallType = require('./call_graph')
+const { CallType, OrganizationType, TeamType, UserType } = require('./')
 
 // relations
 UserType.addRelation('team', {

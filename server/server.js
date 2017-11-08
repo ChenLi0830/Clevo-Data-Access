@@ -6,7 +6,7 @@ const passport = require('passport')
 const MongoStore = require('connect-mongo')(session)
 const schema = require('./graphql/schema')
 const cors = require('cors')
-const { User } = require('./models')
+const { UserSchema } = require('./mongoose')
 // Create a new Express application
 const LocalStrategy = require('passport-local').Strategy
 const app = express()
@@ -48,7 +48,7 @@ mongoose.connect(MONGO_URI, {
   // The counterpart of 'serializeUser'.  Given only a user's ID, we must return
   // the user object.  This object is placed on 'req.user'.
   passport.deserializeUser((id, done) => {
-    User.findById(id, (err, user) => {
+    UserSchema.findById(id, (err, user) => {
       done(err, user)
     })
   })
@@ -62,7 +62,7 @@ mongoose.connect(MONGO_URI, {
   // callback, including a string that messages why the authentication process failed.
   // This string is provided back to the GraphQL client.
   passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
-    User.findOne({ email: email.toLowerCase() }, (err, user) => {
+    UserSchema.findOne({ email: email.toLowerCase() }, (err, user) => {
       if (err) { return done(err) }
       if (!user) { return done(null, false, 'Invalid Credentials') }
       user.comparePassword(password, (err, isMatch) => {

@@ -1,11 +1,11 @@
 const { GraphQLNonNull } = require('graphql')
-const {composeWithMongoose} = require('graphql-compose-mongoose')
+const { composeWithMongoose } = require('graphql-compose-mongoose')
 const passport = require('passport')
-// const debug = require('debug')('user_graph')
+// const debug = require('debug')('user.type')
 
 // convert mongoose schema
-const User = require('../models/user')
-const UserType = composeWithMongoose(User)
+const { UserSchema } = require('../mongoose/')
+const UserType = composeWithMongoose(UserSchema)
 
 // remove sensitive fields
 UserType.removeField('password')
@@ -26,7 +26,7 @@ UserType.addResolver({
     organization: new GraphQLNonNull(UserType.getFieldType('organization'))
   },
   resolve: ({source, args, context, info}) => {
-    return new User(args).save().then(result => {
+    return new UserSchema(args).save().then(result => {
       return new Promise((resolve, reject) => {
         context.login(result, (err) => {
           if (err) { reject(err) }
@@ -88,7 +88,7 @@ UserType.addResolver({
     email: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    return User.findOne({email: args.email.toLowerCase()}).then(user => {
+    return UserSchema.findOne({email: args.email.toLowerCase()}).then(user => {
       user.password = undefined
       return user.save()
     })
@@ -104,7 +104,7 @@ UserType.addResolver({
     newPassword: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    return User.findOne({email: args.email.toLowerCase()}).then(user => {
+    return UserSchema.findOne({email: args.email.toLowerCase()}).then(user => {
       return new Promise((resolve, reject) => {
         user.comparePassword(args.oldPassword, (err, isMatch) => {
           if (err) { reject(err) }
@@ -126,7 +126,7 @@ UserType.addResolver({
     email: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    return User.findOne({email: args.email.toLowerCase()})
+    return UserSchema.findOne({email: args.email.toLowerCase()})
   }
 })
 
@@ -137,7 +137,7 @@ UserType.addResolver({
     email: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    return User.findOneAndRemove({email: args.email.toLowerCase()}).then(result => {
+    return UserSchema.findOneAndRemove({email: args.email.toLowerCase()}).then(result => {
       return {
         recordId: result.id,
         record: result

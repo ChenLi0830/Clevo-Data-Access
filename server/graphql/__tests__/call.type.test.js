@@ -1,7 +1,7 @@
 /* eslint-env jest */
 require('dotenv').config()
 
-const debug = require('debug')('call_graph.test')
+const debug = require('debug')('call.type.test')
 const faker = require('faker')
 const rp = require('request-promise')
 const PORT = process.env.PORT || 4000
