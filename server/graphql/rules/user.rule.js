@@ -1,5 +1,5 @@
 const Rule = require('graphql-rule')
-const debug = require('debug')('user.rule')
+// const debug = require('debug')('user.rule')
 
 // Define access rules.
 const UserRule = Rule.create({
@@ -9,7 +9,6 @@ const UserRule = Rule.create({
       return !!model.$context.user && (model.$context.user.role === 'admin')
     },
     isOwner: (model) => {
-      debug('isOwner', model.$context.user._id, model.$data._id, (model.$context.user._id.toString() === model.$data._id.toString()))
       return !!model.$context.user && !!model.$data && (model.$context.user._id.toString() === model.$data._id.toString())
     }
   },

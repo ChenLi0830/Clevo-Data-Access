@@ -80,13 +80,26 @@ UserType.addResolver({
 
 UserType.addResolver({
   name: 'resetPassword',
-  type: UserType,
+  type: 'String!',
+  args: {
+    email: 'String'
+  },
   resolve: ({source, args, context, info}) => {
     if (!context.user) return Promise.reject(new Error('Not logged in.'))
-    return UserSchema.findByIdAndUpdate(context.user._id, {
-      'password': undefined
-    }, {
-      new: true
+    let rule = new UserRule(args, context)
+    let email = args.email ? args.email.toLowerCase() : context.user.email
+    debug('resetPassword', email)
+    if (!rule.$props.isAdmin && (email !== context.user.email)) {
+      return Promise.reject(new Error('You need to be admin or owner to perform this action.'))
+    }
+    let newPassword = (Math.random() + 1).toString(36).substring(2)
+    return UserSchema.findOne({
+      email: email
+    }).then(user => {
+      user.password = newPassword
+      user.save()
+    }).then(result => {
+      return newPassword
     })
   }
 })
@@ -132,30 +145,18 @@ UserType.wrapResolverResolve('updateById', (next) => (rp) => {
   let rule = new UserRule(rp.args.record, rp.context)
   if (!rule.$props.isAdmin && !rule.$props.isOwner) {
     throw new Error('You need to be admin or owner to perform this action.')
-  } else if (!rp.context.user.organization || !rp.args.record.organization ||
-    rp.context.user.organization.toString() !== rp.args.record.organization) {
-    throw new Error('You need to be in the same organization to perform this action.')
   }
   return next(rp)
 })
 
-UserType.wrapResolver('removeById', resolver => {
-  resolver.resolve = ({source, args, context, info}) => {
-    debug('removeById wrap', args, context.user)
-    let rule = new UserRule(args.record, context)
-    if (!rule.$props.isAdmin) {
-      throw new Error('You need to be admin to perform this action.')
-    }
-    return UserSchema.findOneAndRemove({
-      _id: args._id,
-      organization: context.user.organization
-    }).then(result => {
-      return {
-        recordId: result.id,
-        record: result
-      }
-    })
+UserType.wrapResolverResolve('removeById', (next) => (rp) => {
+  // rp = resolveParams = { source, args, context, info }
+  debug('updateById wrap', rp.args, rp.context.user)
+  let rule = new UserRule(rp.args.record, rp.context)
+  if (!rule.$props.isAdmin) {
+    throw new Error('You need to be admin to perform this action.')
   }
+  return next(rp)
 })
 
 UserType.addResolver({
@@ -171,8 +172,7 @@ UserType.addResolver({
       throw new Error('You need to be admin to perform this action.')
     }
     return UserSchema.findOneAndRemove({
-      email: args.email.toLowerCase(),
-      organization: context.user.organization
+      email: args.email.toLowerCase()
     }).then(result => {
       return {
         recordId: result.id,
