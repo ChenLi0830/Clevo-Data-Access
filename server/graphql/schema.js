@@ -9,6 +9,30 @@ UserType.addRelation('organization', {
     _id: (source) => source.team.organization
   }
 })
+TeamType.addRelation('users', {
+  resolver: UserType.getResolver('findMany'),
+  prepareArgs: {
+    filter: (source) => {
+      return { team: source.id }
+    }
+  }
+})
+OrganizationType.addRelation('teams', {
+  resolver: TeamType.getResolver('findMany'),
+  prepareArgs: {
+    filter: (source) => {
+      return { organization: source.id }
+    }
+  }
+})
+OrganizationType.addRelation('users', {
+  resolver: UserType.getResolver('findMany'),
+  prepareArgs: {
+    filter: (source) => {
+      return { organization: source.id }
+    }
+  }
+})
 TeamType.addRelation('organization', {
   resolver: OrganizationType.getResolver('findById'),
   prepareArgs: {
