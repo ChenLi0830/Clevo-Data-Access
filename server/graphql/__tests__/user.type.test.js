@@ -66,8 +66,7 @@ test('create user', () => {
       $title: String,
       $role: EnumUserRole,
       $status: EnumUserStatus,
-      $team: MongoID!,
-      $organization: MongoID!
+      $team: MongoID!
     ) { userSignup (
       email: $email,
       password: $password,
@@ -76,8 +75,7 @@ test('create user', () => {
       title: $title,
       role: $role,
       status: $status,
-      team: $team,
-      organization: $organization
+      team: $team
     ) {
       email,
       staffId,
@@ -109,6 +107,7 @@ test('create user', () => {
       updatedAt
     }}
   `).then(body => {
+    debug('full response', body)
     let result = body.data
     debug('create user', result)
     expect(result[operationName].email).toEqual(variables.email.toLocaleLowerCase())
@@ -217,62 +216,14 @@ test('read users by team', () => {
   })
 })
 
-test('read users by organization', () => {
-  let operationName = 'users'
-  return graphqlQuery(operationName, `
-    query users(
-      $organization: MongoID
-    ) { users(
-      filter: {
-        organization: $organization
-      }
-    ) {
-      email,
-      staffId,
-      name,
-      title,
-      role,
-      status,
-      team {
-        _id,
-        name,
-        status,
-        createdAt,
-        updatedAt
-      },
-      organization {
-        _id,
-        name,
-        status,
-        createdAt,
-        updatedAt,
-        analyticRules {
-          emotionThreshold,
-          ratingThreshold,
-          bannedWords,
-          sensitiveWords
-        }
-      },
-      createdAt,
-      updatedAt
-    }}
-  `).then(body => {
-    let result = body.data
-    debug('read users by organization', result)
-    expect(result[operationName].length).toBeGreaterThanOrEqual(1)
-  })
-})
-
 // Todo: test changePassword method for both success and failure scenarios
 test('changePassword', () => {
   let operationName = 'userChangePassword'
   return graphqlQuery(operationName, `
     mutation userChangePassword (
-      $email: String!,
       $password: String!,
       $newPassword: String!
     ) { userChangePassword (
-      email: $email,
       oldPassword: $password,
       newPassword: $newPassword
     ) {
@@ -321,11 +272,7 @@ test('changePassword', () => {
 test('resetPassword', () => {
   let operationName = 'userResetPassword'
   return graphqlQuery(operationName, `
-    mutation userResetPassword (
-      $email: String!
-    ) { userResetPassword (
-      email: $email
-    ) {
+    mutation userResetPassword { userResetPassword {
       email,
       staffId,
       name,

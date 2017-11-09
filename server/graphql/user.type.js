@@ -23,8 +23,7 @@ UserType.addResolver({
     title: UserType.getFieldType('title'),
     role: UserType.getFieldType('role'),
     status: UserType.getFieldType('status'),
-    team: new GraphQLNonNull(UserType.getFieldType('team')),
-    organization: new GraphQLNonNull(UserType.getFieldType('organization'))
+    team: new GraphQLNonNull(UserType.getFieldType('team'))
   },
   resolve: ({source, args, context, info}) => {
     return new UserSchema(args).save().then(result => {

@@ -1,19 +1,13 @@
 const { CallType, OrganizationType, TeamType, UserType } = require('./')
+// const debug = require('debug')('schema')
 
 // relations
-UserType.addRelation('team', {
-  resolver: TeamType.getResolver('findById'),
-  prepareArgs: {
-    _id: (source) => source.team
-  },
-  projection: { team: true }
-})
+UserType.setField('team', TeamType)
 UserType.addRelation('organization', {
   resolver: OrganizationType.getResolver('findById'),
   prepareArgs: {
-    _id: (source) => source.organization
-  },
-  projection: { organization: true }
+    _id: (source) => source.team.organization
+  }
 })
 TeamType.addRelation('organization', {
   resolver: OrganizationType.getResolver('findById'),

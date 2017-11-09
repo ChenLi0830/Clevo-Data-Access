@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt-nodejs')
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
-// const debug = require('debug')('user.schema')
+const debug = require('debug')('user.schema')
 const uniqueValidator = require('mongoose-unique-validator')
 
 // Every user has an email and password.  The password is not stored as
@@ -44,16 +44,24 @@ const UserSchema = new Schema({
   team: {
     type: Schema.Types.ObjectId,
     ref: 'Team'
-  },
-  organization: {
-    type: Schema.Types.ObjectId,
-    ref: 'Organization'
   }
 }, {
   timestamps: true
 })
 
 UserSchema.plugin(uniqueValidator)
+
+function populateByDefault () {
+  debug('pre query populateByDefault')
+  this.populate('team')
+}
+
+// UserSchema.pre('count', populateByDefault)
+UserSchema.pre('find', populateByDefault)
+UserSchema.pre('findOne', populateByDefault)
+UserSchema.pre('findOneAndUpdate', populateByDefault)
+UserSchema.pre('findOneAndRemove', populateByDefault)
+UserSchema.pre('update', populateByDefault)
 
 // The user's password is never saved in plain text.  Prior to saving the
 // user model, we 'salt' and 'hash' the users password.  This is a one way

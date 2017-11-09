@@ -10,7 +10,8 @@ const organization = new OrganizationSchema({
   name: faker.company.companyName()
 })
 const team = new TeamSchema({
-  name: faker.name.lastName()
+  name: faker.name.lastName(),
+  organization: organization
 })
 const email = faker.internet.email()
 const staffId = faker.random.number(1000)
@@ -28,8 +29,7 @@ const user = new UserSchema({
   title,
   role,
   status,
-  team,
-  organization
+  team
 })
 
 beforeAll(() => {
@@ -59,6 +59,20 @@ afterAll(() => {
 test('create user', () => {
   return user.save().then(result => {
     debug('create user', result)
+    expect(result.createdAt).toEqual(result.updatedAt)
+    expect(result.email).toEqual(email.toLocaleLowerCase())
+    expect(result.staffId).toEqual(staffId.toString())
+    expect(result.password).not.toEqual(password)
+    expect(result.name).toEqual(name)
+    expect(result.title).toEqual(title)
+    expect(result.role).toEqual(role)
+    expect(result.status).toEqual(status)
+  })
+})
+
+test('read user', () => {
+  return UserSchema.findById(user.id).exec().then(result => {
+    debug('read user', result)
     expect(result.createdAt).toEqual(result.updatedAt)
     expect(result.email).toEqual(email.toLocaleLowerCase())
     expect(result.staffId).toEqual(staffId.toString())
