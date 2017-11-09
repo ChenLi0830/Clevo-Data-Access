@@ -1,7 +1,8 @@
 const { GraphQLNonNull } = require('graphql')
 const { composeWithMongoose } = require('graphql-compose-mongoose')
 const passport = require('passport')
-// const debug = require('debug')('user.type')
+const debug = require('debug')('user.type')
+const { UserRule } = require('./rules')
 
 // convert mongoose schema
 const { UserSchema } = require('../mongoose/')
@@ -63,9 +64,6 @@ UserType.addResolver({
 UserType.addResolver({
   name: 'logout',
   type: UserType,
-  args: {
-    email: 'String!'
-  },
   resolve: ({source, args, context, info}) => {
     let user = context.user
     context.logout()
@@ -84,13 +82,12 @@ UserType.addResolver({
 UserType.addResolver({
   name: 'resetPassword',
   type: UserType,
-  args: {
-    email: 'String!'
-  },
   resolve: ({source, args, context, info}) => {
-    return UserSchema.findOne({email: args.email.toLowerCase()}).then(user => {
-      user.password = undefined
-      return user.save()
+    if (!context.user) return Promise.reject(new Error('Not logged in.'))
+    return UserSchema.findByIdAndUpdate(context.user._id, {
+      'password': undefined
+    }, {
+      new: true
     })
   }
 })
@@ -99,12 +96,12 @@ UserType.addResolver({
   name: 'changePassword',
   type: UserType,
   args: {
-    email: 'String!',
     oldPassword: 'String!',
     newPassword: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    return UserSchema.findOne({email: args.email.toLowerCase()}).then(user => {
+    if (!context.user) return Promise.reject(new Error('Not logged in.'))
+    return UserSchema.findById(context.user._id).then(user => {
       return new Promise((resolve, reject) => {
         user.comparePassword(args.oldPassword, (err, isMatch) => {
           if (err) { reject(err) }
@@ -130,6 +127,38 @@ UserType.addResolver({
   }
 })
 
+UserType.wrapResolverResolve('updateById', (next) => (rp) => {
+  // rp = resolveParams = { source, args, context, info }
+  debug('updateById wrap', rp.args, rp.context.user)
+  let rule = new UserRule(rp.args.record, rp.context)
+  if (!rule.$props.isAdmin && !rule.$props.isOwner) {
+    throw new Error('You need to be admin or owner to perform this action.')
+  } else if (!rp.context.user.organization || !rp.args.record.organization ||
+    rp.context.user.organization.toString() !== rp.args.record.organization) {
+    throw new Error('You need to be in the same organization to perform this action.')
+  }
+  return next(rp)
+})
+
+UserType.wrapResolver('removeById', resolver => {
+  resolver.resolve = ({source, args, context, info}) => {
+    debug('removeById wrap', args, context.user)
+    let rule = new UserRule(args.record, context)
+    if (!rule.$props.isAdmin) {
+      throw new Error('You need to be admin to perform this action.')
+    }
+    return UserSchema.findOneAndRemove({
+      _id: args._id,
+      organization: context.user.organization
+    }).then(result => {
+      return {
+        recordId: result.id,
+        record: result
+      }
+    })
+  }
+})
+
 UserType.addResolver({
   name: 'removeByEmail',
   type: UserType.getResolver('removeById').getType(),
@@ -137,7 +166,15 @@ UserType.addResolver({
     email: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    return UserSchema.findOneAndRemove({email: args.email.toLowerCase()}).then(result => {
+    debug('removeByEmail', args, context.user)
+    let rule = new UserRule(args, context)
+    if (!rule.$props.isAdmin) {
+      throw new Error('You need to be admin to perform this action.')
+    }
+    return UserSchema.findOneAndRemove({
+      email: args.email.toLowerCase(),
+      organization: context.user.organization
+    }).then(result => {
       return {
         recordId: result.id,
         record: result
