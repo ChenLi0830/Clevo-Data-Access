@@ -81,7 +81,7 @@ test('create organization', () => {
   `).then(body => {
     let result = body.data
     debug('create organization', result)
-    variables.id = result[operationName].recordId
+    variables._id = result[operationName].recordId
     expect(result[operationName].record.name).toEqual(variables.name)
     expect(result[operationName].record.status).toEqual(variables.status)
     expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)
@@ -130,10 +130,10 @@ test('update organization', () => {
   variables.status = 'inactive'
   return graphqlQuery(operationName, `
     mutation organizationUpdate(
-      $id: MongoID!,
+      $_id: MongoID!,
       $status: EnumOrganizationStatus
     ) { organizationUpdate (record: {
-      _id: $id,
+      _id: $_id,
       status: $status
     }) {
       recordId
@@ -164,9 +164,13 @@ test('update organization', () => {
 })
 
 test('delete organization', () => {
-  let operationName = 'organizationDeleteByName'
+  let operationName = 'organizationDelete'
   return graphqlQuery(operationName, `
-    mutation organizationDeleteByName ($name: String!) { organizationDeleteByName (name: $name) {
+    mutation organizationDelete (
+      $_id: MongoID!
+    ) { organizationDelete (
+      _id: $_id
+    ) {
       recordId
       record {
         name

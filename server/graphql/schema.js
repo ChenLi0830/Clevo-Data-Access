@@ -92,7 +92,6 @@ GQC.rootMutation().addFields({
   organizationCreate: OrganizationType.getResolver('createOne'),
   organizationUpdate: OrganizationType.getResolver('updateById'),
   organizationDelete: OrganizationType.getResolver('removeById'),
-  organizationDeleteByName: OrganizationType.getResolver('removeByName'),  // custom resolver
   callCreate: CallType.getResolver('createOne'),
   callUpdate: CallType.getResolver('updateById'),
   callDelete: CallType.getResolver('removeById')

@@ -1,15 +1,17 @@
 const Rule = require('graphql-rule')
-const debug = require('debug')('team.rule')
+// const debug = require('debug')('team.rule')
 
 // Define access rules.
 const TeamRule = Rule.create({
   name: 'Team',
   props: {
+    isMaster: (model) => {
+      return !!model.$context.user && (model.$context.user.role === 'master')
+    },
     isAdmin: (model) => {
       return !!model.$context.user && (model.$context.user.role === 'admin')
     },
     isMember: (model) => {
-      debug('isMember', model.$context.user.team._id, model.$data._id, (model.$context.user._id.toString() === model.$data._id.toString()))
       return !!model.$context.user && !!model.$context.user.team && !!model.$data &&
         (model.$context.user.team._id.toString() === model.$data._id.toString())
     }
@@ -21,7 +23,7 @@ const TeamRule = Rule.create({
   rules: {
     users: {
       preRead: (model) => {
-        return model.$props.isMember
+        return model.$props.isMaster || model.$props.isAdmin || model.$props.isMember
       },
       readFail: () => { throw new Error('Permission denied to read users field') }
     }

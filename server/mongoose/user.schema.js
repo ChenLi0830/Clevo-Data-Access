@@ -32,7 +32,7 @@ const UserSchema = new Schema({
   role: {
     type: String,
     enum: [
-      'admin', 'staff'
+      'master', 'admin', 'staff'
     ]
   },
   status: {

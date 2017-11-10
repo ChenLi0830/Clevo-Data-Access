@@ -45,7 +45,7 @@ function adminMutable (next) {
     // rp = resolveParams = { source, args, context, info }
     debug('adminAccess wrap', rp.args, rp.context.user)
     let rule = new TeamRule(rp.args.record, rp.context)
-    if (!rule.$props.isAdmin) {
+    if (!rule.$props.isMaster && !rule.$props.isAdmin) {
       throw new Error('You need to be admin to perform this action.')
     }
     return next(rp)

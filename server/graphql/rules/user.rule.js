@@ -5,6 +5,9 @@ const Rule = require('graphql-rule')
 const UserRule = Rule.create({
   name: 'User',
   props: {
+    isMaster: (model) => {
+      return !!model.$context.user && (model.$context.user.role === 'master')
+    },
     isAdmin: (model) => {
       return !!model.$context.user && (model.$context.user.role === 'admin')
     },
@@ -18,7 +21,7 @@ const UserRule = Rule.create({
   },
   rules: {
     email: {
-      read: (model) => model.$props.isAdmin || model.$props.isOwner,
+      read: (model) => model.$props.isMaster || model.$props.isAdmin || model.$props.isOwner,
       readFail: () => { throw new Error('Permission denied to read user email field') }
     }
   }

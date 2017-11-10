@@ -167,7 +167,7 @@ function ownerMutable (next) {
     // rp = resolveParams = { source, args, context, info }
     debug('ownerAccess wrap', rp.args, rp.context.user)
     let rule = new UserRule(rp.args.record, rp.context)
-    if (!rule.$props.isAdmin && !rule.$props.isOwner) {
+    if (!rule.$props.isMaster && !rule.$props.isAdmin && !rule.$props.isOwner) {
       throw new Error('You need to be admin or owner to perform this action.')
     }
     // owner can not change the following fields
@@ -186,7 +186,7 @@ function adminMutable (next) {
     // rp = resolveParams = { source, args, context, info }
     debug('adminAccess wrap', rp.args, rp.context.user)
     let rule = new UserRule(rp.args.record, rp.context)
-    if (!rule.$props.isAdmin) {
+    if (!rule.$props.isMaster && !rule.$props.isAdmin) {
       throw new Error('You need to be admin to perform this action.')
     }
     return next(rp)
