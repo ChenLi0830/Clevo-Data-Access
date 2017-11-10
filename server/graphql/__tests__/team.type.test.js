@@ -82,7 +82,7 @@ test('create team', () => {
     }}
   `).then(body => {
     let result = body.data
-    debug('create team', result)
+    debug('create team', body)
     expect(result[operationName].record.name).toEqual(variables.name)
     expect(result[operationName].record.status).toEqual(variables.status)
     expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)
@@ -117,7 +117,7 @@ test('read team', () => {
     }}
   `).then(body => {
     let result = body.data
-    debug('read team', result)
+    debug('read team', body)
     expect(result[operationName].name).toEqual(variables.name)
     expect(result[operationName].status).toEqual(variables.status)
     expect(result[operationName].createdAt).toEqual(result[operationName].updatedAt)
@@ -155,7 +155,7 @@ test('delete team', () => {
     }}
   `).then(body => {
     let result = body.data
-    debug('delete team', result)
+    debug('delete team', body)
     expect(result[operationName].record.name).toEqual(variables.name)
     expect(result[operationName].record.status).toEqual(variables.status)
     expect(result[operationName].record.createdAt).toEqual(result[operationName].record.updatedAt)

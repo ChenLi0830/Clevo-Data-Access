@@ -139,26 +139,6 @@ UserType.addResolver({
   }
 })
 
-UserType.wrapResolverResolve('updateById', (next) => (rp) => {
-  // rp = resolveParams = { source, args, context, info }
-  debug('updateById wrap', rp.args, rp.context.user)
-  let rule = new UserRule(rp.args.record, rp.context)
-  if (!rule.$props.isAdmin && !rule.$props.isOwner) {
-    throw new Error('You need to be admin or owner to perform this action.')
-  }
-  return next(rp)
-})
-
-UserType.wrapResolverResolve('removeById', (next) => (rp) => {
-  // rp = resolveParams = { source, args, context, info }
-  debug('updateById wrap', rp.args, rp.context.user)
-  let rule = new UserRule(rp.args.record, rp.context)
-  if (!rule.$props.isAdmin) {
-    throw new Error('You need to be admin to perform this action.')
-  }
-  return next(rp)
-})
-
 UserType.addResolver({
   name: 'removeByEmail',
   type: UserType.getResolver('removeById').getType(),
@@ -166,11 +146,6 @@ UserType.addResolver({
     email: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    debug('removeByEmail', args, context.user)
-    let rule = new UserRule(args, context)
-    if (!rule.$props.isAdmin) {
-      throw new Error('You need to be admin to perform this action.')
-    }
     return UserSchema.findOneAndRemove({
       email: args.email.toLowerCase()
     }).then(result => {
@@ -181,5 +156,41 @@ UserType.addResolver({
     })
   }
 })
+
+// apply mutation access wrapping
+UserType.wrapResolverResolve('updateById', ownerMutable)
+UserType.wrapResolverResolve('removeById', adminMutable)
+UserType.wrapResolverResolve('removeByEmail', adminMutable)
+
+function ownerMutable (next) {
+  return (rp) => {
+    // rp = resolveParams = { source, args, context, info }
+    debug('ownerAccess wrap', rp.args, rp.context.user)
+    let rule = new UserRule(rp.args.record, rp.context)
+    if (!rule.$props.isAdmin && !rule.$props.isOwner) {
+      throw new Error('You need to be admin or owner to perform this action.')
+    }
+    // owner can not change the following fields
+    if (rule.$props.isOwner) {
+      delete rp.args.record.email
+      delete rp.args.record.role
+      delete rp.args.record.team
+      debug('ownerMutable protect', rp.args.record)
+    }
+    return next(rp)
+  }
+}
+
+function adminMutable (next) {
+  return (rp) => {
+    // rp = resolveParams = { source, args, context, info }
+    debug('adminAccess wrap', rp.args, rp.context.user)
+    let rule = new UserRule(rp.args.record, rp.context)
+    if (!rule.$props.isAdmin) {
+      throw new Error('You need to be admin to perform this action.')
+    }
+    return next(rp)
+  }
+}
 
 module.exports = UserType
