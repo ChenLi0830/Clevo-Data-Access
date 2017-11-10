@@ -12,7 +12,8 @@ const UserRule = Rule.create({
       return !!model.$context.user && (model.$context.user.role === 'admin')
     },
     isOwner: (model) => {
-      return !!model.$context.user && !!model.$data && (model.$context.user._id.toString() === model.$data._id.toString())
+      return !!model.$context.user && !!model.$data &&
+        (model.$context.user._id.toString() === model.$data._id.toString())
     }
   },
   defaultRule: {
