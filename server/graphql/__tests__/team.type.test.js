@@ -14,15 +14,21 @@ const client = new ApolloClient({
   cache: new InMemoryCache()
 })
 
-const { seedUser, unseedUser } = require('./data.seeding')
-let user = {}
+const variables = {
+  name: faker.name.lastName(),
+  status: 'active',
+  organization: undefined
+}
 
+const { seed, unseed, login, logout } = require('./data.seeding')
 // const app = require('../server')
 // let server = null
 
 beforeAll(() => {
-  return seedUser(client, undefined, undefined, undefined).then(result => {
-    user = result
+  return seed().then(result => {
+    return login(client, result.email, result.password).then(result => {
+      variables.organization = result.organization._id
+    })
   })
 //   return new Promise((resolve, reject) => {
 //     server = app.listen(PORT, () => {
@@ -35,7 +41,9 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  return unseedUser(client, user._id)
+  return logout(client).then(result => {
+    return unseed()
+  })
 //   return new Promise((resolve, reject) => {
 //     server.close(() => {
 //       debug('Server closed on port: ', PORT)
@@ -43,12 +51,6 @@ afterAll(() => {
 //     })
 //   })
 })
-
-const variables = {
-  name: faker.name.lastName(),
-  status: 'active',
-  organization: '59f8e428a773be264cffc56f'
-}
 
 test('create team', () => {
   let operationName = 'teamCreate'

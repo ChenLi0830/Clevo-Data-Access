@@ -14,39 +14,10 @@ const client = new ApolloClient({
   cache: new InMemoryCache()
 })
 
-const { seedUser, unseedUser } = require('./data.seeding')
-let user = {}
-
-// const app = require('../server')
-// let server = null
-
-beforeAll(() => {
-  return seedUser(client, undefined, undefined, undefined).then(result => {
-    user = result
-  })
-//   return new Promise((resolve, reject) => {
-//     server = app.listen(PORT, () => {
-//       debug('Server started on port: ', PORT)
-//       setTimeout(() => {
-//         resolve()
-//       }, 5000)
-//     })
-//   })
-})
-
-afterAll(() => {
-  return unseedUser(client, user._id)
-//   return new Promise((resolve, reject) => {
-//     server.close(() => {
-//       debug('Server closed on port: ', PORT)
-//       resolve()
-//     })
-//   })
-})
-
 const variables = {
-  staff: '59f8b6f5aefd0a172181990b',
-  organization: '59f8e428a773be264cffc56f',
+  id: undefined,
+  staff: undefined,
+  organization: undefined,
   status: 'active',
   format: 'mp3',
   encoding: 'pcm',
@@ -111,9 +82,41 @@ const variables = {
       faker.random.word()
     ]
   }],
-  subject: faker.lorem.word(),
-  id: undefined
+  subject: faker.lorem.word()
 }
+
+const { seed, unseed, login, logout } = require('./data.seeding')
+// const app = require('../server')
+// let server = null
+
+beforeAll(() => {
+  return seed().then(result => {
+    return login(client, result.email, result.password).then(result => {
+      variables.staff = result._id
+      variables.organization = result.organization._id
+    })
+  })
+//   return new Promise((resolve, reject) => {
+//     server = app.listen(PORT, () => {
+//       debug('Server started on port: ', PORT)
+//       setTimeout(() => {
+//         resolve()
+//       }, 5000)
+//     })
+//   })
+})
+
+afterAll(() => {
+  return logout(client).then(result => {
+    return unseed()
+  })
+//   return new Promise((resolve, reject) => {
+//     server.close(() => {
+//       debug('Server closed on port: ', PORT)
+//       resolve()
+//     })
+//   })
+})
 
 test('create call', () => {
   let operationName = 'callCreate'

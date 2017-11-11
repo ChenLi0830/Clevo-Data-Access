@@ -14,10 +14,36 @@ const client = new ApolloClient({
   cache: new InMemoryCache()
 })
 
+const variables = {
+  _id: undefined,
+  email: faker.internet.email(),
+  staffId: faker.random.number(1000),
+  password: faker.internet.password(),
+  newPassword: faker.internet.password(),
+  name: faker.name.findName(),
+  title: faker.name.jobTitle(),
+  status: 'active',
+  team: undefined,
+  organization: undefined
+}
+const master = {
+  email: undefined,
+  password: undefined
+}
+
+const { seed, unseed, login, logout } = require('./data.seeding')
 // const app = require('../server')
 // let server = null
 
-// beforeAll(() => {
+beforeAll(() => {
+  return seed().then(result => {
+    master.email = result.email
+    master.password = result.password
+    return login(client, result.email, result.password).then(result => {
+      variables.team = result.team._id
+      variables.organization = result.organization._id
+    })
+  })
 //   return new Promise((resolve, reject) => {
 //     server = app.listen(PORT, () => {
 //       debug('Server started on port: ', PORT)
@@ -26,29 +52,19 @@ const client = new ApolloClient({
 //       }, 5000)
 //     })
 //   })
-// })
+})
 
-// afterAll(() => {
+afterAll(() => {
+  return logout(client).then(result => {
+    return unseed()
+  })
 //   return new Promise((resolve, reject) => {
 //     server.close(() => {
 //       debug('Server closed on port: ', PORT)
 //       resolve()
 //     })
 //   })
-// })
-
-const variables = {
-  email: faker.internet.email(),
-  staffId: faker.random.number(1000),
-  password: faker.internet.password(),
-  newPassword: faker.internet.password(),
-  name: faker.name.findName(),
-  title: faker.name.jobTitle(),
-  role: 'admin',
-  status: 'active',
-  team: '59f8b2653d21031560e1ecc2',
-  organization: '59f8e428a773be264cffc56f'
-}
+})
 
 // Todo: check if organization member will be added automatically when a new user is created
 test('create user', () => {
@@ -61,7 +77,6 @@ test('create user', () => {
         $staffId: String!,
         $name: String!, 
         $title: String,
-        $role: EnumUserRole,
         $status: EnumUserStatus,
         $team: MongoID!
       ) { userSignup (
@@ -70,7 +85,6 @@ test('create user', () => {
         staffId: $staffId,
         name: $name,
         title: $title,
-        role: $role,
         status: $status,
         team: $team
       ) {
@@ -92,7 +106,6 @@ test('create user', () => {
     expect(result[operationName].staffId).toEqual(variables.staffId.toString())
     expect(result[operationName].name).toEqual(variables.name)
     expect(result[operationName].title).toEqual(variables.title)
-    expect(result[operationName].role).toEqual(variables.role)
     expect(result[operationName].status).toEqual(variables.status)
     expect(result[operationName].createdAt).toEqual(result[operationName].updatedAt)
   })
@@ -107,6 +120,7 @@ test('read user', () => {
       ) { userByEmail(
         email: $email
       ) {
+        _id,
         email,
         staffId,
         name,
@@ -145,7 +159,6 @@ test('read user', () => {
     expect(result[operationName].staffId).toEqual(variables.staffId.toString())
     expect(result[operationName].name).toEqual(variables.name)
     expect(result[operationName].title).toEqual(variables.title)
-    expect(result[operationName].role).toEqual(variables.role)
     expect(result[operationName].status).toEqual(variables.status)
     expect(result[operationName].createdAt).toEqual(result[operationName].updatedAt)
   })
@@ -201,7 +214,6 @@ test('changePassword', () => {
     expect(result[operationName].staffId).toEqual(variables.staffId.toString())
     expect(result[operationName].name).toEqual(variables.name)
     expect(result[operationName].title).toEqual(variables.title)
-    expect(result[operationName].role).toEqual(variables.role)
     expect(result[operationName].status).toEqual(variables.status)
     expect(result[operationName].createdAt).not.toEqual(result[operationName].updatedAt)
   })
@@ -223,56 +235,57 @@ test('resetPassword', () => {
 
 // Todo: check if organization member will be removed automatically when a new user is created
 test('delete user', () => {
-  let operationName = 'userDeleteByEmail'
-  return client.mutate({
-    mutation: tag`
-      mutation userDeleteByEmail (
-        $email: String!
-      ) { userDeleteByEmail (
-        email: $email
-      ) {
-        recordId
-        record {
-          email,
-          staffId,
-          name,
-          title,
-          role,
-          status,
-          team {
-            _id,
+  return login(client, master.email, master.password).then(result => {
+    let operationName = 'userDeleteByEmail'
+    return client.mutate({
+      mutation: tag`
+        mutation userDeleteByEmail (
+          $email: String!
+        ) { userDeleteByEmail (
+          email: $email
+        ) {
+          recordId
+          record {
+            email,
+            staffId,
             name,
+            title,
+            role,
             status,
+            team {
+              _id,
+              name,
+              status,
+              createdAt,
+              updatedAt
+            },
+            organization {
+              _id,
+              name,
+              status,
+              createdAt,
+              updatedAt,
+              analyticRules {
+                emotionThreshold,
+                ratingThreshold,
+                bannedWords,
+                sensitiveWords
+              }
+            },
             createdAt,
             updatedAt
-          },
-          organization {
-            _id,
-            name,
-            status,
-            createdAt,
-            updatedAt,
-            analyticRules {
-              emotionThreshold,
-              ratingThreshold,
-              bannedWords,
-              sensitiveWords
-            }
-          },
-          createdAt,
-          updatedAt
-        }
-      }}
-    `,
-    variables
-  }).then(body => {
-    let result = body.data
-    debug('delete user', result)
-    expect(result[operationName].record.email).toEqual(variables.email.toLocaleLowerCase())
-    expect(result[operationName].record.staffId).toEqual(variables.staffId.toString())
-    expect(result[operationName].record.name).toEqual(variables.name)
-    expect(result[operationName].record.title).toEqual(variables.title)
-    expect(result[operationName].record.role).toEqual(variables.role)
-    expect(result[operationName].record.status).toEqual(variables.status)
+          }
+        }}
+      `,
+      variables
+    }).then(body => {
+      let result = body.data
+      debug('delete user', result)
+      expect(result[operationName].record.email).toEqual(variables.email.toLocaleLowerCase())
+      expect(result[operationName].record.staffId).toEqual(variables.staffId.toString())
+      expect(result[operationName].record.name).toEqual(variables.name)
+      expect(result[operationName].record.title).toEqual(variables.title)
+      expect(result[operationName].record.status).toEqual(variables.status)
+    })
   })
 })

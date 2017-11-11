@@ -21,7 +21,6 @@ UserType.addResolver({
     staffId: new GraphQLNonNull(UserType.getFieldType('staffId')),
     name: new GraphQLNonNull(UserType.getFieldType('name')),
     title: UserType.getFieldType('title'),
-    role: UserType.getFieldType('role'),
     status: UserType.getFieldType('status'),
     team: new GraphQLNonNull(UserType.getFieldType('team'))
   },

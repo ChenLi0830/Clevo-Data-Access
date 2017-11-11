@@ -2,44 +2,66 @@
 require('dotenv').config()
 
 const debug = require('debug')('data.seeding')
+const mongoose = require('mongoose')
+const { OrganizationSchema, TeamSchema, UserSchema } = require('../../mongoose')
 const faker = require('faker')
 const tag = require('graphql-tag')
 
-function seedUser (client, organization, team, role) {
-  const variables = {
-    email: faker.internet.email(),
-    staffId: faker.random.number(1000),
-    password: faker.internet.password(),
-    newPassword: faker.internet.password(),
-    name: faker.name.findName(),
-    title: faker.name.jobTitle(),
-    role: role || 'master',
-    status: 'active',
-    team: team || '59f8b2653d21031560e1ecc2',
-    organization: organization || '59f8e428a773be264cffc56f'
+const organization = new OrganizationSchema({
+  name: faker.company.companyName()
+})
+const team = new TeamSchema({
+  name: faker.name.lastName(),
+  organization: organization
+})
+const staff = new UserSchema({
+  email: faker.internet.email(),
+  staffId: faker.random.number(1000),
+  password: faker.internet.password(),
+  name: faker.name.findName(),
+  title: faker.name.jobTitle(),
+  role: 'master',
+  status: 'active',
+  team: team,
+  organization: organization
+})
+
+function seed () {
+  debug('seeding...', organization, team, staff)
+  mongoose.Promise = global.Promise
+  let result = {
+    email: staff.email,
+    password: staff.password
   }
-  debug('seed user', organization, team, role, variables)
-  let operationName = 'userSignup'
+  return mongoose.connect(process.env.MONGO_URI, {
+    useMongoClient: true
+  }).then(doc => {
+    debug('mongoose connected successfully')
+    // seed staff, team, and organization for test
+    return organization.save().then(a => {
+      return team.save().then(b => {
+        return staff.save().then(c => {
+          debug('seeded', c)
+          return result
+        })
+      })
+    })
+  }, error => {
+    debug('mongoose connecting failed', error)
+  })
+}
+
+function login (client, email, password) {
+  debug('logging in...', email, password)
+  let operationName = 'userLogin'
   return client.mutate({
     mutation: tag`
-      mutation userSignup(
+      mutation userLogin (
         $email: String!,
-        $password: String!,
-        $staffId: String!,
-        $name: String!, 
-        $title: String,
-        $role: EnumUserRole,
-        $status: EnumUserStatus,
-        $team: MongoID!
-      ) { userSignup (
-        email: $email,
-        password: $password,
-        staffId: $staffId,
-        name: $name,
-        title: $title,
-        role: $role,
-        status: $status,
-        team: $team
+        $password:String!
+      ) { userLogin (
+        email:$email,
+        password:$password
       ) {
         _id,
         email,
@@ -48,61 +70,100 @@ function seedUser (client, organization, team, role) {
         title,
         role,
         status,
+        team {
+          _id,
+          name,
+          status,
+          createdAt,
+          updatedAt
+        },
+        organization {
+          _id,
+          name,
+          status,
+          createdAt,
+          updatedAt,
+          analyticRules {
+            emotionThreshold,
+            ratingThreshold,
+            bannedWords,
+            sensitiveWords
+          }
+        },
         createdAt,
         updatedAt
       }}
     `,
-    variables: variables
+    variables: {
+      email,
+      password
+    }
   }).then(body => {
     let result = body.data
-    debug('seed user', result)
-    return {
-      _id: result[operationName]._id,
-      email: result[operationName].email,
-      password: variables.password
-    }
-  }).catch(error => {
-    debug('seed user failed', error)
+    debug('logged in', result)
+    return result[operationName]
   })
 }
 
-function unseedUser (client, _id) {
-  debug('unseed user', _id)
-  let operationName = 'userDelete'
+function logout (client) {
+  debug('logging out...')
+  let operationName = 'userLogout'
   return client.mutate({
     mutation: tag`
-      mutation userDelete (
-        $_id: String!
-      ) { userDelete (
-        _id: $_id
-      ) {
-        recordId
-        record {
-          _id,
-          email,
-          staffId,
-          name,
-          title,
-          role,
-          status,
-          createdAt,
-          updatedAt
-        }
-      }}
-    `,
-    variables: {
+    mutation userLogout { userLogout {
       _id
-    }
+      email,
+      staffId,
+      name,
+      title,
+      role,
+      status,
+      team {
+        _id,
+        name,
+        status,
+        createdAt,
+        updatedAt
+      },
+      organization {
+        _id,
+        name,
+        status,
+        createdAt,
+        updatedAt,
+        analyticRules {
+          emotionThreshold,
+          ratingThreshold,
+          bannedWords,
+          sensitiveWords
+        }
+      },
+      createdAt,
+      updatedAt
+    }}
+    `
   }).then(body => {
     let result = body.data
-    debug('unseed user', result)
-    return {
-      _id: result[operationName]._id
-    }
+    debug('logged out', result)
+    return result[operationName]
+  })
+}
+
+function unseed () {
+  debug('seeding...', organization, team, staff)
+  return staff.remove().then(a => {
+    return team.remove().then(b => {
+      return organization.remove()
+    })
+  }).then(result => {
+    debug('unseeded')
+    return mongoose.disconnect()
   })
 }
 
 module.exports = {
-  seedUser,
-  unseedUser
+  seed,
+  unseed,
+  login,
+  logout
 }
