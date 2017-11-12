@@ -48,6 +48,11 @@
     "nodemon": "^1.12.1"
   },
   "engines": {
-    "node": "6.x.x"
+    "node": "8.x.x"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "data.seeding.js"
+    ]
   }
 }
