@@ -13,7 +13,8 @@ const OrganizationSchema = new Schema(
       type: String,
       enum: [
         'active', 'inactive'
-      ]
+      ],
+      default: 'active'
     },
     analyticRules: {
       sensitiveWords: [String],

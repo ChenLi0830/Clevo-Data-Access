@@ -33,13 +33,15 @@ const UserSchema = new Schema({
     type: String,
     enum: [
       'master', 'admin', 'staff'
-    ]
+    ],
+    default: 'staff'
   },
   status: {
     type: String,
     enum: [
       'active', 'inactive'
-    ]
+    ],
+    default: 'active'
   },
   team: {
     type: Schema.Types.ObjectId,

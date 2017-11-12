@@ -3,30 +3,16 @@ require('dotenv').config()
 
 const debug = require('debug')('organization.type.test')
 const faker = require('faker')
-const rp = require('request-promise')
-const PORT = process.env.PORT || 4000
-// const app = require('../server')
-// let server = null
-
-// beforeAll(() => {
-//   return new Promise((resolve, reject) => {
-//     server = app.listen(PORT, () => {
-//       debug('Server started on port: ', PORT)
-//       setTimeout(() => {
-//         resolve()
-//       }, 5000)
-//     })
-//   })
-// })
-
-// afterAll(() => {
-//   return new Promise((resolve, reject) => {
-//     server.close(() => {
-//       debug('Server closed on port: ', PORT)
-//       resolve()
-//     })
-//   })
-// })
+const tag = require('graphql-tag')
+const { ApolloClient, HttpLink, InMemoryCache } = require('apollo-client-preset')
+const client = new ApolloClient({
+  link: new HttpLink({
+    uri: 'http://localhost:' + (process.env.PORT || 4000) + '/graphql',
+    credentials: 'same-origin',
+    fetch: require('fetch-cookie/node-fetch')(require('node-fetch'))
+  }),
+  cache: new InMemoryCache()
+})
 
 const variables = {
   name: faker.company.companyName(),
@@ -39,46 +25,67 @@ const variables = {
   }
 }
 
-function graphqlQuery (name, query) {
-  return rp({
-    method: 'POST',
-    uri: 'http://localhost:' + PORT + '/graphql',
-    body: {
-      operationName: name,
-      query: query,
-      variables: variables
-    },
-    json: true
+const { seed, unseed, login, logout } = require('./data.seeding')
+// const app = require('../server')
+// let server = null
+
+beforeAll(() => {
+  return seed().then(result => {
+    return login(client, result.email, result.password).then(result => {
+    })
   })
-}
+//   return new Promise((resolve, reject) => {
+//     server = app.listen(PORT, () => {
+//       debug('Server started on port: ', PORT)
+//       setTimeout(() => {
+//         resolve()
+//       }, 5000)
+//     })
+//   })
+})
+
+afterAll(() => {
+  return logout(client).then(result => {
+    return unseed()
+  })
+//   return new Promise((resolve, reject) => {
+//     server.close(() => {
+//       debug('Server closed on port: ', PORT)
+//       resolve()
+//     })
+//   })
+})
 
 test('create organization', () => {
   let operationName = 'organizationCreate'
-  return graphqlQuery(operationName, `
-    mutation organizationCreate(
-      $name: String, 
-      $status: EnumOrganizationStatus, 
-      $analyticRules: OrganizationAnalyticRulesInput
-    ) { organizationCreate (record: {
-      name: $name
-      status: $status
-      analyticRules: $analyticRules
-    }) {
-      recordId
-      record {
-        name
-        status
-        createdAt
-        updatedAt
-        analyticRules {
-          emotionThreshold
-          ratingThreshold
-          bannedWords
-          sensitiveWords
+  return client.mutate({
+    mutation: tag`
+      mutation organizationCreate(
+        $name: String, 
+        $status: EnumOrganizationStatus, 
+        $analyticRules: OrganizationAnalyticRulesInput
+      ) { organizationCreate (record: {
+        name: $name
+        status: $status
+        analyticRules: $analyticRules
+      }) {
+        recordId
+        record {
+          name
+          status
+          createdAt
+          updatedAt
+          analyticRules {
+            emotionThreshold
+            ratingThreshold
+            bannedWords
+            sensitiveWords
+          }
         }
-      }
-    }}
-  `).then(body => {
+      }}
+    `,
+    variables
+  }).then(body => {
     let result = body.data
     debug('create organization', result)
     variables._id = result[operationName].recordId
@@ -94,25 +101,28 @@ test('create organization', () => {
 
 test('read organization', () => {
   let operationName = 'organizationByName'
-  return graphqlQuery(operationName, `
-    query organizationByName(
-      $name: String!
-    ) { organizationByName(
-      name: $name
-    ) {
-      _id
-      name
-      status
-      createdAt
-      updatedAt
-      analyticRules {
-        emotionThreshold
-        ratingThreshold
-        bannedWords
-        sensitiveWords
-      }
-    }}
-  `).then(body => {
+  return client.query({
+    query: tag`
+      query organizationByName(
+        $name: String!
+      ) { organizationByName(
+        name: $name
+      ) {
+        _id
+        name
+        status
+        createdAt
+        updatedAt
+        analyticRules {
+          emotionThreshold
+          ratingThreshold
+          bannedWords
+          sensitiveWords
+        }
+      }}
+    `,
+    variables
+  }).then(body => {
     let result = body.data
     debug('read organization', result)
     expect(result[operationName].name).toEqual(variables.name)
@@ -128,29 +138,32 @@ test('read organization', () => {
 test('update organization', () => {
   let operationName = 'organizationUpdate'
   variables.status = 'inactive'
-  return graphqlQuery(operationName, `
-    mutation organizationUpdate(
-      $_id: MongoID!,
-      $status: EnumOrganizationStatus
-    ) { organizationUpdate (record: {
-      _id: $_id,
-      status: $status
-    }) {
-      recordId
-      record {
-        name
-        status
-        createdAt
-        updatedAt
-        analyticRules {
-          emotionThreshold
-          ratingThreshold
-          bannedWords
-          sensitiveWords
+  return client.mutate({
+    mutation: tag`
+      mutation organizationUpdate(
+        $_id: MongoID!,
+        $status: EnumOrganizationStatus
+      ) { organizationUpdate (record: {
+        _id: $_id,
+        status: $status
+      }) {
+        recordId
+        record {
+          name
+          status
+          createdAt
+          updatedAt
+          analyticRules {
+            emotionThreshold
+            ratingThreshold
+            bannedWords
+            sensitiveWords
+          }
         }
-      }
-    }}
-  `).then(body => {
+      }}
+    `,
+    variables
+  }).then(body => {
     let result = body.data
     debug('update organization', result)
     expect(result[operationName].record.name).toEqual(variables.name)
@@ -165,27 +178,30 @@ test('update organization', () => {
 
 test('delete organization', () => {
   let operationName = 'organizationDelete'
-  return graphqlQuery(operationName, `
-    mutation organizationDelete (
-      $_id: MongoID!
-    ) { organizationDelete (
-      _id: $_id
-    ) {
-      recordId
-      record {
-        name
-        status
-        createdAt
-        updatedAt
-        analyticRules {
-          emotionThreshold
-          ratingThreshold
-          bannedWords
-          sensitiveWords
+  return client.mutate({
+    mutation: tag`
+      mutation organizationDelete (
+        $_id: MongoID!
+      ) { organizationDelete (
+        _id: $_id
+      ) {
+        recordId
+        record {
+          name
+          status
+          createdAt
+          updatedAt
+          analyticRules {
+            emotionThreshold
+            ratingThreshold
+            bannedWords
+            sensitiveWords
+          }
         }
-      }
-    }}
-  `).then(body => {
+      }}
+    `,
+    variables
+  }).then(body => {
     let result = body.data
     debug('delete organization', result)
     expect(result[operationName].record.name).toEqual(variables.name)

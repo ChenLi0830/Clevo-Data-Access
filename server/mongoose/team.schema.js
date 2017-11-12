@@ -14,7 +14,8 @@ const TeamSchema = new Schema({
     type: String,
     enum: [
       'active', 'inactive'
-    ]
+    ],
+    default: 'active'
   },
   organization: {
     type: Schema.Types.ObjectId,
