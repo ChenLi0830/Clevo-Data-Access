@@ -1,7 +1,8 @@
 const { GraphQLNonNull } = require('graphql')
 const { composeWithMongoose } = require('graphql-compose-mongoose')
 const passport = require('passport')
-// const debug = require('debug')('user.type')
+const debug = require('debug')('user.type')
+const { UserRule } = require('./rules')
 
 // convert mongoose schema
 const { UserSchema } = require('../mongoose/')
@@ -20,10 +21,8 @@ UserType.addResolver({
     staffId: new GraphQLNonNull(UserType.getFieldType('staffId')),
     name: new GraphQLNonNull(UserType.getFieldType('name')),
     title: UserType.getFieldType('title'),
-    role: UserType.getFieldType('role'),
     status: UserType.getFieldType('status'),
-    team: new GraphQLNonNull(UserType.getFieldType('team')),
-    organization: new GraphQLNonNull(UserType.getFieldType('organization'))
+    team: new GraphQLNonNull(UserType.getFieldType('team'))
   },
   resolve: ({source, args, context, info}) => {
     return new UserSchema(args).save().then(result => {
@@ -63,9 +62,6 @@ UserType.addResolver({
 UserType.addResolver({
   name: 'logout',
   type: UserType,
-  args: {
-    email: 'String!'
-  },
   resolve: ({source, args, context, info}) => {
     let user = context.user
     context.logout()
@@ -83,14 +79,26 @@ UserType.addResolver({
 
 UserType.addResolver({
   name: 'resetPassword',
-  type: UserType,
+  type: 'String!',
   args: {
-    email: 'String!'
+    email: 'String'
   },
   resolve: ({source, args, context, info}) => {
-    return UserSchema.findOne({email: args.email.toLowerCase()}).then(user => {
-      user.password = undefined
-      return user.save()
+    if (!context.user) return Promise.reject(new Error('Not logged in.'))
+    let rule = new UserRule(args, context)
+    let email = args.email ? args.email.toLowerCase() : context.user.email
+    debug('resetPassword', email)
+    if (!rule.$props.isAdmin && (email !== context.user.email)) {
+      return Promise.reject(new Error('You need to be admin or owner to perform this action.'))
+    }
+    let newPassword = (Math.random() + 1).toString(36).substring(2)
+    return UserSchema.findOne({
+      email: email
+    }).then(user => {
+      user.password = newPassword
+      user.save()
+    }).then(result => {
+      return newPassword
     })
   }
 })
@@ -99,12 +107,12 @@ UserType.addResolver({
   name: 'changePassword',
   type: UserType,
   args: {
-    email: 'String!',
     oldPassword: 'String!',
     newPassword: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    return UserSchema.findOne({email: args.email.toLowerCase()}).then(user => {
+    if (!context.user) return Promise.reject(new Error('Not logged in.'))
+    return UserSchema.findById(context.user._id).then(user => {
       return new Promise((resolve, reject) => {
         user.comparePassword(args.oldPassword, (err, isMatch) => {
           if (err) { reject(err) }
@@ -137,7 +145,9 @@ UserType.addResolver({
     email: 'String!'
   },
   resolve: ({source, args, context, info}) => {
-    return UserSchema.findOneAndRemove({email: args.email.toLowerCase()}).then(result => {
+    return UserSchema.findOneAndRemove({
+      email: args.email.toLowerCase()
+    }).then(result => {
       return {
         recordId: result.id,
         record: result
@@ -145,5 +155,41 @@ UserType.addResolver({
     })
   }
 })
+
+// apply mutation access wrapping
+UserType.wrapResolverResolve('updateById', ownerMutable)
+UserType.wrapResolverResolve('removeById', adminMutable)
+UserType.wrapResolverResolve('removeByEmail', adminMutable)
+
+function ownerMutable (next) {
+  return (rp) => {
+    // rp = resolveParams = { source, args, context, info }
+    debug('ownerAccess wrap', rp.args, rp.context.user)
+    let rule = new UserRule(rp.args.record, rp.context)
+    if (!rule.$props.isMaster && !rule.$props.isAdmin && !rule.$props.isOwner) {
+      throw new Error('You need to be admin or owner to perform this action.')
+    }
+    // owner can not change the following fields
+    if (rule.$props.isOwner) {
+      delete rp.args.record.email
+      delete rp.args.record.role
+      delete rp.args.record.team
+      debug('ownerMutable protect', rp.args.record)
+    }
+    return next(rp)
+  }
+}
+
+function adminMutable (next) {
+  return (rp) => {
+    // rp = resolveParams = { source, args, context, info }
+    debug('adminAccess wrap', rp.args, rp.context.user)
+    let rule = new UserRule(rp.args.record, rp.context)
+    if (!rule.$props.isMaster && !rule.$props.isAdmin) {
+      throw new Error('You need to be admin to perform this action.')
+    }
+    return next(rp)
+  }
+}
 
 module.exports = UserType

@@ -1,19 +1,37 @@
 const { CallType, OrganizationType, TeamType, UserType } = require('./')
+// const debug = require('debug')('schema')
 
 // relations
-UserType.addRelation('team', {
-  resolver: TeamType.getResolver('findById'),
-  prepareArgs: {
-    _id: (source) => source.team
-  },
-  projection: { team: true }
-})
+UserType.setField('team', TeamType)
 UserType.addRelation('organization', {
   resolver: OrganizationType.getResolver('findById'),
   prepareArgs: {
-    _id: (source) => source.organization
-  },
-  projection: { organization: true }
+    _id: (source) => source.team.organization
+  }
+})
+TeamType.addRelation('users', {
+  resolver: UserType.getResolver('findMany'),
+  prepareArgs: {
+    filter: (source) => {
+      return { team: source.id }
+    }
+  }
+})
+OrganizationType.addRelation('teams', {
+  resolver: TeamType.getResolver('findMany'),
+  prepareArgs: {
+    filter: (source) => {
+      return { organization: source.id }
+    }
+  }
+})
+OrganizationType.addRelation('users', {
+  resolver: UserType.getResolver('findMany'),
+  prepareArgs: {
+    filter: (source) => {
+      return { organization: source.id }
+    }
+  }
 })
 TeamType.addRelation('organization', {
   resolver: OrganizationType.getResolver('findById'),
@@ -74,7 +92,6 @@ GQC.rootMutation().addFields({
   organizationCreate: OrganizationType.getResolver('createOne'),
   organizationUpdate: OrganizationType.getResolver('updateById'),
   organizationDelete: OrganizationType.getResolver('removeById'),
-  organizationDeleteByName: OrganizationType.getResolver('removeByName'),  // custom resolver
   callCreate: CallType.getResolver('createOne'),
   callUpdate: CallType.getResolver('updateById'),
   callDelete: CallType.getResolver('removeById')

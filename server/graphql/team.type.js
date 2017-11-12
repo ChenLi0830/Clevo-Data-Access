@@ -1,4 +1,6 @@
 const { composeWithMongoose } = require('graphql-compose-mongoose')
+const debug = require('debug')('team.type')
+const { TeamRule } = require('./rules')
 
 // convert mongoose schema
 const { TeamSchema } = require('../mongoose')
@@ -31,5 +33,23 @@ TeamType.addResolver({
     })
   }
 })
+
+// apply mutation access wrapping
+TeamType.wrapResolverResolve('createOne', adminMutable)
+TeamType.wrapResolverResolve('updateById', adminMutable)
+TeamType.wrapResolverResolve('removeById', adminMutable)
+TeamType.wrapResolverResolve('removeByName', adminMutable)
+
+function adminMutable (next) {
+  return (rp) => {
+    // rp = resolveParams = { source, args, context, info }
+    debug('adminAccess wrap', rp.args, rp.context.user)
+    let rule = new TeamRule(rp.args.record, rp.context)
+    if (!rule.$props.isMaster && !rule.$props.isAdmin) {
+      throw new Error('You need to be admin to perform this action.')
+    }
+    return next(rp)
+  }
+}
 
 module.exports = TeamType

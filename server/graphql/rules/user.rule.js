@@ -1,32 +1,30 @@
 const Rule = require('graphql-rule')
+// const debug = require('debug')('user.rule')
 
 // Define access rules.
 const UserRule = Rule.create({
   name: 'User',
   props: {
-    isAdmin: (model) => model.$context.user.role === 'ClevoAdmin',
-    isOwner: (model) => model.$data.id === model.$context.user.id
+    isMaster: (model) => {
+      return !!model.$context.user && (model.$context.user.role === 'master')
+    },
+    isAdmin: (model) => {
+      return !!model.$context.user && (model.$context.user.role === 'admin')
+    },
+    isOwner: (model) => {
+      return !!model.$context.user && !!model.$data &&
+        (model.$context.user._id.toString() === model.$data._id.toString())
+    }
   },
   defaultRule: {
     preRead: true,
-    read: true,
-    readFail: null
+    read: true
   },
   rules: {
-    id: true,
     email: {
-      preRead: (model) => model.$props.isAdmin || model.$props.isOwner,
-      readFail: () => { throw new Error('Unauthorized') }
-    },
-    password: false,
-    title: {},
-    name: {},
-    staffId: (model) => model.$props.isOwner,
-    role: {},
-    createdAt: (model) => model.$props.isAdmin || model.$props.isOwner,
-    updatedAt: (model) => model.$props.isAdmin || model.$props.isOwner,
-    status: {},
-    team: {}
+      read: (model) => model.$props.isMaster || model.$props.isAdmin || model.$props.isOwner,
+      readFail: () => { throw new Error('Permission denied to read user email field') }
+    }
   }
 })
 
