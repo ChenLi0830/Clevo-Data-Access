@@ -340,6 +340,47 @@ test('read call', () => {
   })
 })
 
+test('find calls', () => {
+  let finish = new Date()
+  let start = new Date(finish.getTime() - 60000)
+  let operationName = 'calls'
+  return client.query({
+    query: tag`
+      query calls (
+        $organization: MongoID,
+        $start: Date,
+        $finish: Date
+      ) { calls (
+        filter: {
+          organization: $organization,
+          _operators: {
+            createdAt: {
+              gte: $start,
+              lte: $finish
+            }
+          }
+      }) {
+        _id,
+        organization {
+          name
+        },
+        subject,
+        createdAt,
+        updatedAt
+      }}
+    `,
+    variables: {
+      organization: variables.organization,
+      start,
+      finish
+    }
+  }).then(body => {
+    let result = body.data
+    debug('find calls', result)
+    expect(result[operationName].length).toBeGreaterThanOrEqual(1)
+  })
+})
+
 test('delete call', () => {
   let operationName = 'callDelete'
   return client.mutate({

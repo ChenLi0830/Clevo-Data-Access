@@ -112,4 +112,7 @@ const CallSchema = new Schema(
   }
 )
 
+CallSchema.index({'createdAt': 1})
+CallSchema.index({'updatedAt': 1})
+
 module.exports = mongoose.model('Call', CallSchema)

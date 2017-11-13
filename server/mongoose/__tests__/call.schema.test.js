@@ -183,6 +183,15 @@ test('read call', () => {
   })
 })
 
+test('find calls', () => {
+  let finish = new Date()
+  let start = new Date(finish.getTime() - 60000)
+  return CallSchema.find().lte('createdAt', finish).gte('createdAt', start).populate('staff').populate('organization').exec().then(result => {
+    debug('find calls', result)
+    expect(result.length).toBeGreaterThanOrEqual(1)
+  })
+})
+
 test('update call', () => {
   return CallSchema.findByIdAndUpdate(call.id, {
     'emotion.status': 'completed',
