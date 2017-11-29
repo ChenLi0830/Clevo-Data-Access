@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+const uniqueValidator = require('mongoose-unique-validator')
 
 const CallSchema = new Schema(
   {
@@ -29,7 +30,12 @@ const CallSchema = new Schema(
         'linear16', 'pcm'
       ]
     },
-    source: String,
+    // source: String,
+    source: {
+      type: String,
+      unique: true,
+      index: true
+    },
     startedAt: Date,
     transcription: {
       processor: {
@@ -111,6 +117,8 @@ const CallSchema = new Schema(
     timestamps: true
   }
 )
+
+CallSchema.plugin(uniqueValidator)
 
 CallSchema.index({'createdAt': 1})
 CallSchema.index({'updatedAt': 1})
