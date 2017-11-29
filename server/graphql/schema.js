@@ -73,6 +73,7 @@ GQC.rootQuery().addFields({
   organizationsByIds: OrganizationType.getResolver('findByIds'),
   organizations: OrganizationType.getResolver('findMany'),
   callById: CallType.getResolver('findById'),
+  callBySource: CallType.getResolver('findBySource'),
   callsByIds: CallType.getResolver('findByIds'),
   calls: CallType.getResolver('findMany')
 })

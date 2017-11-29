@@ -9,6 +9,17 @@ const CallType = composeWithMongoose(CallSchema)
 // apply mutation access wrapping
 CallType.wrapResolverResolve('removeById', adminMutable)
 
+CallType.addResolver({
+  name: 'findBySource',
+  type: CallType,
+  args: {
+    source: 'String!'
+  },
+  resolve: ({source, args, context, info}) => {
+    return CallSchema.findOne({source: args.source})
+  }
+})
+
 function adminMutable (next) {
   return (rp) => {
     // rp = resolveParams = { source, args, context, info }

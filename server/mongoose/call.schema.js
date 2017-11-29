@@ -30,7 +30,6 @@ const CallSchema = new Schema(
         'linear16', 'pcm'
       ]
     },
-    // source: String,
     source: {
       type: String,
       unique: true,
