@@ -1,5 +1,5 @@
-const { CallType, OrganizationType, TeamType, UserType } = require('./')
-// const debug = require('debug')('schema')
+const { CallType, OrganizationType, TeamType, UserType, ValidatorType } = require('./')
+const debug = require('debug')('schema')
 
 // relations
 UserType.setField('team', TeamType)
@@ -54,6 +54,18 @@ CallType.addRelation('organization', {
   },
   projection: { organization: true }
 })
+CallType.addRelation('validators', {
+  resolver: ValidatorType.getResolver('findByIds'),
+  prepareArgs: {
+    _ids: source => source.riskyRatings.map(rating => rating.validator)
+  }
+})
+ValidatorType.addRelation('validatedCalls', {
+  resolver: CallType.getResolver('findByIds'),
+  prepareArgs: {
+    _ids: (source) => source.validatedCalls
+  }
+})
 
 // resolvers
 const { ComposeStorage } = require('graphql-compose')
@@ -75,7 +87,12 @@ GQC.rootQuery().addFields({
   callById: CallType.getResolver('findById'),
   callBySource: CallType.getResolver('findBySource'),
   callsByIds: CallType.getResolver('findByIds'),
-  calls: CallType.getResolver('findMany')
+  calls: CallType.getResolver('findMany'),
+  // validatorsBySource: CallType.getResolver('findBySource'),
+  validatorsByIds: CallType.getResolver('findByIds'),
+  validators: CallType.getResolver('findMany'),
+  validatorByName: ValidatorType.getResolver('findByName') // custom resolver
+  // validatorByName: ValidatorType.getResolver('findByName')
 })
 GQC.rootMutation().addFields({
   userLogin: UserType.getResolver('login'), // custom resolver
@@ -95,7 +112,11 @@ GQC.rootMutation().addFields({
   organizationDelete: OrganizationType.getResolver('removeById'),
   callCreate: CallType.getResolver('createOne'),
   callUpdate: CallType.getResolver('updateById'),
-  callDelete: CallType.getResolver('removeById')
+  callDelete: CallType.getResolver('removeById'),
+  validatorCreate: ValidatorType.getResolver('createOne'),
+  validatorUpdate: ValidatorType.getResolver('updateById'),
+  validatorDelete: ValidatorType.getResolver('removeById'),
+  validatorDeleteByName: ValidatorType.getResolver('removeByName')  // custom resolver
 })
 
 module.exports = GQC.buildSchema()

@@ -35,6 +35,18 @@ const CallSchema = new Schema(
       unique: true,
       index: true
     },
+    riskyRatings: [{
+      validator: String,
+      rating: {
+        type: Number,
+        min: 0,
+        max: 4,
+        validate: {
+          validator: Number.isInteger,
+          message: '{VALUE} is not an integer value'
+        }
+      }
+    }],
     startedAt: Date,
     transcription: {
       processor: {
