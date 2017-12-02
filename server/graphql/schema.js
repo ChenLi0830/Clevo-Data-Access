@@ -113,6 +113,7 @@ GQC.rootMutation().addFields({
   callCreate: CallType.getResolver('createOne'),
   callUpdate: CallType.getResolver('updateById'),
   callDelete: CallType.getResolver('removeById'),
+  validatorValidateCall: ValidatorType.getResolver('validateCall'),
   validatorCreate: ValidatorType.getResolver('createOne'),
   validatorUpdate: ValidatorType.getResolver('updateById'),
   validatorDelete: ValidatorType.getResolver('removeById'),

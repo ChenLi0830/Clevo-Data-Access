@@ -2,7 +2,7 @@ const { composeWithMongoose } = require('graphql-compose-mongoose')
 const debug = require('debug')('team.type')
 
 // convert mongoose schema
-const { ValidatorSchema } = require('../mongoose')
+const { ValidatorSchema, CallSchema } = require('../mongoose')
 const ValidatorType = composeWithMongoose(ValidatorSchema)
 
 // add additional resolvers
@@ -29,6 +29,38 @@ ValidatorType.addResolver({
         recordId: result.id,
         record: result
       }
+    })
+  }
+})
+
+ValidatorType.addResolver({
+  name: 'validateCall',
+  type: ValidatorType,
+  args: {
+    validatorId: 'ID!',
+    callId: 'ID!',
+    rating: 'Int!'
+  },
+  resolve: ({source, args, context, info}) => {
+    return CallSchema.findById(args.callId)
+    .then(result => {
+      return CallSchema.findByIdAndUpdate(args.callId, {
+        riskyRatings: [
+          ...(result.riskyRatings || []),
+          {
+            validator: args.validatorId,
+            rating: args.rating
+          }
+        ]
+      })
+    })
+    .then(() => {
+      return ValidatorSchema.findById(args.validatorId)
+    })
+    .then(result => {
+      return ValidatorSchema.findByIdAndUpdate(args.validatorId, {
+        validatedCalls: [...(result.validatedCalls || []), args.callId]
+      })
     })
   }
 })
