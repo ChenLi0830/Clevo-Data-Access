@@ -1,9 +1,9 @@
-# Clevo-Server
+# Clevo Database Access Service
 
 ## Install dependencies
 `npm install`
 
-## Run server
+## Development
 `npm run dev`
 
 After running the command, tthe server should running locally at 
@@ -12,6 +12,8 @@ After running the command, tthe server should running locally at
 
 MongoDB is hosted on mLab. 
 
-Both authentication and ACL can be tested in the Graphiql interface. 
+## Testing
 
-The details of the access rules package can be found in [https://github.com/joonhocho/graphql-rule](https://github.com/joonhocho/graphql-rule) 
+Both authentication and Access Control List (ACL) can be tested in the Graphiql interface. 
+
+The details of the access rules package can be found in [https://github.com/joonhocho/graphql-rule](https://github.com/joonhocho/graphql-rule)
