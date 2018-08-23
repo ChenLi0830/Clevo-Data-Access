@@ -1,26 +1,69 @@
 const bcrypt = require('bcrypt-nodejs')
-const crypto = require('crypto')
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
+const debug = require('debug')('user.schema')
+const uniqueValidator = require('mongoose-unique-validator')
 
 // Every user has an email and password.  The password is not stored as
 // plain text - see the authentication helpers below.
 const UserSchema = new Schema({
-  email: String,
-  password: String,
-  createdAt: Date,
-  updatedAt: Date,
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    index: true
+  },
+  staffId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+  password: {
+    type: String
+    // required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
   title: String,
-  name: String,
-  staffId: String,
-  status: String, // flag for status, such as active, inactive, etc
+  role: {
+    type: String,
+    enum: [
+      'master', 'admin', 'staff'
+    ],
+    default: 'staff'
+  },
+  status: {
+    type: String,
+    enum: [
+      'active', 'inactive'
+    ],
+    default: 'active'
+  },
   team: {
     type: Schema.Types.ObjectId,
-    ref: 'team'
-  },
-  role: String, // orgAdmin / teamAdmin / staff
-  // organization: OrganizationType,
+    ref: 'Team'
+  }
+}, {
+  timestamps: true
 })
+
+UserSchema.plugin(uniqueValidator)
+
+function populateByDefault () {
+  debug('pre query populateByDefault')
+  this.populate('team')
+}
+
+// UserSchema.pre('count', populateByDefault)
+UserSchema.pre('find', populateByDefault)
+UserSchema.pre('findOne', populateByDefault)
+UserSchema.pre('findOneAndUpdate', populateByDefault)
+UserSchema.pre('findOneAndRemove', populateByDefault)
+UserSchema.pre('update', populateByDefault)
 
 // The user's password is never saved in plain text.  Prior to saving the
 // user model, we 'salt' and 'hash' the users password.  This is a one way
@@ -30,6 +73,7 @@ const UserSchema = new Schema({
 UserSchema.pre('save', function save (next) {
   const user = this
   if (!user.isModified('password')) { return next() }
+  if (!user.password) { return next() }
   bcrypt.genSalt(10, (err, salt) => {
     if (err) { return next(err) }
     bcrypt.hash(user.password, salt, null, (err, hash) => {
@@ -51,4 +95,4 @@ UserSchema.methods.comparePassword = function comparePassword (candidatePassword
   })
 }
 
-module.exports = mongoose.model('user', UserSchema)
+module.exports = mongoose.model('User', UserSchema)

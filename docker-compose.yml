@@ -1,0 +1,25 @@
+version: '2'
+services:
+  Clevo-Server-XF:
+    image: 'node:8.9'
+    restart: always
+    ports:
+      - '3600:3600'
+    volumes:
+      - './:/tarDir:rw' # used for dev
+      # - 'clevo-server-youyin-xf-uswest:/tarDir:rw'
+#      - 'clevo-server-dev:/app:rw' # staging
+      # - '/app/node_modules/' # make sure /app/node_modules is empty initially, and detach from oss
+    environment:
+      - 'PORT=3600'
+      - 'MONGO_URI=mongodb://clevo-dev:Clevo2017@ds129066.mlab.com:29066/youyin-xf'
+      - 'NODE_ENV=dev'
+      - 'CLIENT_PORT=3000'
+      - 'DEBUG=*,-babel,-*.test'
+    labels:
+      aliyun.routing.port_3600: youyin-server-xf
+      aliyun.scale: '2'
+    # command: tail -F anything
+    command: bash -c "rm -rf application && mkdir -p application && cp tarDir/clevo-server-1.0.0.tgz /application && cd application/ && tar -xf clevo-server-1.0.0.tgz && cd package && node index.js"
+    # command: bash -c "cd /app && npm install && npm run dev"
+
