@@ -7,7 +7,7 @@ const { CallSchema } = require('../mongoose')
 const CallType = composeWithMongoose(CallSchema)
 
 // apply mutation access wrapping
-CallType.wrapResolverResolve('removeById', adminMutable)
+// CallType.wrapResolverResolve('removeById', adminMutable)
 
 CallType.addResolver({
   name: 'findBySource',

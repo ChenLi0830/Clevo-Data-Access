@@ -96,6 +96,12 @@ mongoose.connect(MONGO_URI, {
     schema,
     graphiql: true
   }))
+
+  app.use(function (req, res, next) {
+    req.socket.on('error', function (error) { console.log('request socket error', error) })
+    res.socket.on('error', function (error) { console.log('response socket error', error) })
+    next()
+  })
 }, error => {
   console.log('mongoose connecting failed', error)
 })
